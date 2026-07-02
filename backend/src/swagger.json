@@ -1,0 +1,268 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Smart Internship Matching Portal REST API",
+    "version": "1.0.0",
+    "description": "Enterprise API documentation mapping Students, Recruiters, and Admins alongside matching engines."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register a new user (Student or Recruiter)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password", "role", "name"],
+                "properties": {
+                  "email": { "type": "string", "example": "student@example.com" },
+                  "password": { "type": "string", "example": "Password@123" },
+                  "role": { "type": "string", "enum": ["student", "recruiter"], "example": "student" },
+                  "name": { "type": "string", "example": "Alex Rivera" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created. OTP sent." }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Log in and obtain JWT tokens",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "student@example.com" },
+                  "password": { "type": "string", "example": "Password@123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Session tokens returned." }
+        }
+      }
+    },
+    "/api/auth/verify": {
+      "post": {
+        "summary": "Verify email using OTP",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "otp"],
+                "properties": {
+                  "email": { "type": "string", "example": "student@example.com" },
+                  "otp": { "type": "string", "example": "123456" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Email verified." }
+        }
+      }
+    },
+    "/api/recruiter/company": {
+      "get": {
+        "summary": "Get recruiter's company details",
+        "responses": {
+          "200": { "description": "Company details object." }
+        }
+      },
+      "put": {
+        "summary": "Update recruiter's company details",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "example": "Stripe" },
+                  "logo": { "type": "string" },
+                  "website": { "type": "string" },
+                  "location": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Company updated successfully." }
+        }
+      }
+    },
+    "/api/internships": {
+      "get": {
+        "summary": "Search internship postings with filter overlays",
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "mode", "in": "query", "schema": { "type": "string", "enum": ["Remote", "Hybrid", "Office"] } },
+          { "name": "location", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Array of internship cards." }
+        }
+      }
+    },
+    "/api/applications": {
+      "post": {
+        "summary": "Apply to an internship position (Student only)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["internshipId"],
+                "properties": {
+                  "internshipId": { "type": "string", "example": "intern_stripe_fe" },
+                  "coverLetter": { "type": "string", "example": "I love Stripe UI." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Application submitted successfully." }
+        }
+      }
+    },
+    "/api/ai/parse-resume": {
+      "post": {
+        "summary": "Upload and parse candidate resume to extract profile metrics",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "resume": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Profile parsed and updated." }
+        }
+      }
+    },
+    "/api/student/profile": {
+      "get": {
+        "summary": "Get student's profile attributes",
+        "responses": {
+          "200": { "description": "Student profile object." }
+        }
+      },
+      "put": {
+        "summary": "Create or update student's profile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "skills": { "type": "array", "items": { "type": "string" } },
+                  "cgpa": { "type": "number" },
+                  "education": { "type": "array", "items": { "type": "object" } },
+                  "projects": { "type": "array", "items": { "type": "object" } },
+                  "certifications": { "type": "array", "items": { "type": "object" } },
+                  "links": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Student profile updated successfully." }
+        }
+      }
+    },
+    "/api/ai/skill-gap/{internshipId}": {
+      "get": {
+        "summary": "Retrieve comparative skill gap analysis relative to job",
+        "parameters": [
+          { "name": "internshipId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Skill gap known and missing items." }
+        }
+      }
+    },
+    "/api/ai/chat": {
+      "get": {
+        "summary": "Get career advisor chat conversation history",
+        "responses": {
+          "200": { "description": "Chat log array." }
+        }
+      },
+      "post": {
+        "summary": "Post query message to career advisor chatbot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["message"],
+                "properties": {
+                  "message": { "type": "string", "example": "How do I optimize React?" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated chat log conversation." }
+        }
+      }
+    },
+    "/api/admin/stats": {
+      "get": {
+        "summary": "Retrieve system aggregates and logs (Admin only)",
+        "responses": {
+          "200": { "description": "Analytics counts, top skills list, and audit logs." }
+        }
+      }
+    }
+  }
+}

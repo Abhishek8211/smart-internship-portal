@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: sip-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: smart_internship_portal
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mongodb:
+    image: mongo:6.0
+    container_name: sip-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sip-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - JWT_SECRET=sip_jwt_secret_token_2026_key
+      - DATABASE_URL=postgresql://postgres:password123@postgres:5432/smart_internship_portal?schema=public
+      - MONGODB_URI=mongodb://root:password123@mongodb:27017/smart_internship_portal?authSource=admin
+      - EMAIL_HOST=smtp.ethereal.email
+      - EMAIL_PORT=587
+      - EMAIL_USER=test@ethereal.email
+      - EMAIL_PASS=testpassword
+      - GEMINI_API_KEY=
+    depends_on:
+      - postgres
+      - mongodb
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sip-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000
+      - PORT=3000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  mongodb_data:

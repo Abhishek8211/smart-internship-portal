@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id          String       @id @default(uuid())
+  name        String       @db.VarChar(100)
+  logo        String?      @db.VarChar(255)
+  description String?      @db.Text
+  website     String?      @db.VarChar(255)
+  location    String?      @db.VarChar(100)
+  is_verified Boolean      @default(false)
+  created_at  DateTime     @default(now())
+  recruiters  Recruiter[]
+  internships Internship[]
+
+  @@map("companies")
+}
+
+model Recruiter {
+  id          String   @id // Maps directly to the MongoDB User._id string
+  company_id  String?  @db.VarChar(50)
+  phone       String?  @db.VarChar(20)
+  title       String?  @db.VarChar(100)
+  is_verified Boolean  @default(false)
+  created_at  DateTime @default(now())
+  company     Company? @relation(fields: [company_id], references: [id], onDelete: SetNull)
+
+  @@index([company_id])
+  @@map("recruiters")
+}
+
+model Internship {
+  id               String   @id @default(uuid())
+  company_id       String   @db.VarChar(50)
+  role             String   @db.VarChar(100)
+  description      String   @db.Text
+  location         String   @db.VarChar(100)
+  mode             String   @db.VarChar(20) // Remote, Hybrid, Office
+  stipend          String   @db.VarChar(50)
+  duration         String   @db.VarChar(50)
+  skills_required  String[]
+  applicants_count Int      @default(0)
+  status           String   @default("Active") // Active, Closed, Pending Approval
+  posted_date      DateTime @default(now())
+  company          Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id])
+  @@index([status])
+  @@index([mode])
+  @@map("internships")
+}
