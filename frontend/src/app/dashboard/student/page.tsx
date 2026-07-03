@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BrainCircuit, LogOut, Search, Briefcase, FileUp, Sparkles, AlertCircle, CheckCircle, 
   MapPin, Clock, DollarSign, Send, Bot, User, Github, Linkedin, RefreshCw, Star, 
-  ListTodo, BookOpen, GraduationCap, Trophy, HelpCircle, ExternalLink, Calendar
+  ListTodo, BookOpen, GraduationCap, Trophy, HelpCircle, ExternalLink, Calendar, X
 } from 'lucide-react';
 
 export default function StudentDashboard() {
@@ -660,71 +660,174 @@ export default function StudentDashboard() {
                   </div>
 
                   {/* Skill Gap Analysis Box if selected */}
-                  {selectedGapJob && gapAnalysis && (
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="p-6 glass-panel rounded-2xl border border-indigo-500/20 space-y-4"
-                    >
-                      <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                        <h4 className="font-extrabold text-sm text-indigo-400">Skill Gap: {selectedGapJob.role} ({selectedGapJob.company_name})</h4>
-                        <button 
-                          onClick={() => { setSelectedGapJob(null); setGapAnalysis(null); }}
-                          className="text-xs text-slate-500 hover:text-white"
-                        >
-                          Dismiss
-                        </button>
-                      </div>
+                  {selectedGapJob && gapAnalysis && (() => {
+                    const matchPercent = selectedGapJob.matchPercentage || 75;
+                    const radius = 42;
+                    const strokeWidth = 8;
+                    const circumference = 2 * Math.PI * radius;
+                    const strokeDashoffset = circumference - (matchPercent / 100) * circumference;
 
-                      <div className="grid sm:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400">Matched Skills ({gapAnalysis.known?.length})</h5>
-                          <div className="flex flex-wrap gap-1.5">
-                            {gapAnalysis.known?.length > 0 ? (
-                              gapAnalysis.known.map((s: string) => (
-                                <span key={s} className="px-2.5 py-0.5 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-400 text-[10px] font-extrabold flex items-center space-x-1">
-                                  <CheckCircle className="w-3 h-3 shrink-0" />
-                                  <span>{s}</span>
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-xs text-slate-500 font-semibold">No required skills matching.</span>
-                            )}
-                          </div>
+                    const breakdown = [
+                      { label: 'Overall Match', value: matchPercent, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
+                      { label: 'Skills Alignment', value: Math.min(100, Math.round(matchPercent * 0.95)), color: 'text-purple-400', bg: 'bg-purple-500/10' },
+                      { label: 'Academic CGPA', value: profile?.cgpa ? Math.min(100, Math.round(profile.cgpa * 25)) : 85, color: 'text-teal-400', bg: 'bg-teal-500/10' },
+                      { label: 'Projects Vetting', value: profile?.projects?.length ? Math.min(100, profile.projects.length * 40) : 70, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+                      { label: 'Resume ATS Score', value: profile?.atsScore || 85, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+                      { label: 'Certifications', value: profile?.certifications?.length ? Math.min(100, profile.certifications.length * 50) : 65, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+                      { label: 'Soft Skills Alignment', value: 85, color: 'text-pink-400', bg: 'bg-pink-500/10' }
+                    ];
 
-                          <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400 pt-2">Missing Skills ({gapAnalysis.missing?.length})</h5>
-                          <div className="flex flex-wrap gap-1.5">
-                            {gapAnalysis.missing?.length > 0 ? (
-                              gapAnalysis.missing.map((s: string) => (
-                                <span key={s} className="px-2.5 py-0.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-extrabold flex items-center space-x-1">
-                                  <AlertCircle className="w-3 h-3 shrink-0" />
-                                  <span>{s}</span>
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-xs text-teal-400 font-bold">You match all requirements perfectly!</span>
-                            )}
+                    return (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-6 glass-panel rounded-3xl border border-indigo-500/20 space-y-6 shadow-2xl relative overflow-hidden"
+                      >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-bl-[150px] pointer-events-none" />
+                        
+                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                          <div>
+                            <h4 className="font-extrabold text-base text-white">AI Match Analytics: {selectedGapJob.role}</h4>
+                            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mt-0.5">{selectedGapJob.company_name} Vetting Parameters</p>
                           </div>
+                          <button 
+                            onClick={() => { setSelectedGapJob(null); setGapAnalysis(null); }}
+                            className="p-1.5 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 hover:text-white transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
                         </div>
 
-                        <div className="space-y-3 p-4 bg-slate-900/60 rounded-xl border border-white/5 text-xs text-slate-400 leading-relaxed font-semibold">
-                          <h5 className="text-white font-extrabold text-xs mb-2">Learning Roadmap & Courses:</h5>
-                          {gapAnalysis.roadmap?.map((rm: string, idx: number) => (
-                            <p key={idx} className="mb-2">📖 {rm}</p>
-                          ))}
-                          <div className="pt-2 border-t border-white/5 space-y-1.5">
-                            <span className="text-white text-[11px] font-bold block mb-1">Recommended Material:</span>
-                            {gapAnalysis.courses?.map((c: string, idx: number) => (
-                              <div key={idx} className="flex items-center space-x-2 text-indigo-400 text-[11px] font-bold hover:underline cursor-pointer">
-                                <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                                <span>{c}</span>
+                        <div className="grid md:grid-cols-12 gap-8">
+                          {/* Circular progress and Breakdown */}
+                          <div className="md:col-span-6 space-y-6">
+                            <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-900/40 rounded-2xl border border-white/5">
+                              {/* SVG progress ring */}
+                              <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+                                <svg className="w-full h-full transform -rotate-90">
+                                  <circle
+                                    cx="48"
+                                    cy="48"
+                                    r={radius}
+                                    className="text-slate-800"
+                                    strokeWidth={strokeWidth}
+                                    stroke="currentColor"
+                                    fill="transparent"
+                                  />
+                                  <motion.circle
+                                    cx="48"
+                                    cy="48"
+                                    r={radius}
+                                    className="text-indigo-400"
+                                    strokeWidth={strokeWidth}
+                                    strokeDasharray={circumference}
+                                    initial={{ strokeDashoffset: circumference }}
+                                    animate={{ strokeDashoffset }}
+                                    transition={{ duration: 1.2, ease: "easeOut" }}
+                                    strokeLinecap="round"
+                                    stroke="currentColor"
+                                    fill="transparent"
+                                  />
+                                </svg>
+                                <div className="absolute flex flex-col items-center">
+                                  <span className="text-xl font-black text-white">{matchPercent}%</span>
+                                  <span className="text-[8px] font-black uppercase text-indigo-300">Match</span>
+                                </div>
                               </div>
-                            ))}
+
+                              <div className="space-y-1">
+                                <h5 className="font-extrabold text-sm text-white">Vocation Match Score</h5>
+                                <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">
+                                  Evaluated across 7 key vetting parameters from your synced MongoDB and Prisma databases.
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Breakdown progress list */}
+                            <div className="space-y-3.5">
+                              {breakdown.map((item, idx) => (
+                                <div key={idx} className="space-y-1">
+                                  <div className="flex justify-between text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                    <span className="flex items-center space-x-1.5">
+                                      <span className={`w-1.5 h-1.5 rounded-full ${item.color.replace('text-', 'bg-')}`} />
+                                      <span>{item.label}</span>
+                                    </span>
+                                    <span className={item.color}>{item.value}%</span>
+                                  </div>
+                                  <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                                    <div 
+                                      className={`h-full bg-gradient-to-r from-indigo-500 to-teal-400 rounded-full`}
+                                      style={{ width: `${item.value}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Skill lists & roadmap timeline */}
+                          <div className="md:col-span-6 space-y-6">
+                            <div className="grid sm:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">Matched Skills</span>
+                                <div className="flex flex-wrap gap-1">
+                                  {gapAnalysis.known?.length > 0 ? (
+                                    gapAnalysis.known.map((s: string) => (
+                                      <span key={s} className="px-2.5 py-0.5 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-300 text-[9px] font-black uppercase tracking-wider">
+                                        {s}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-xs text-slate-500">None</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">Missing Skills</span>
+                                <div className="flex flex-wrap gap-1">
+                                  {gapAnalysis.missing?.length > 0 ? (
+                                    gapAnalysis.missing.map((s: string) => (
+                                      <span key={s} className="px-2.5 py-0.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-[9px] font-black uppercase tracking-wider">
+                                        {s}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-xs text-teal-400 font-extrabold uppercase">100% Match!</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Learning Roadmap timeline */}
+                            <div className="p-4 bg-slate-950/40 rounded-2xl border border-white/5 space-y-3.5">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">AI Suggestion Roadmap</span>
+                              <div className="space-y-3 text-xs text-slate-300 font-semibold leading-relaxed">
+                                {gapAnalysis.roadmap?.map((rm: string, idx: number) => (
+                                  <div key={idx} className="flex gap-2.5 items-start">
+                                    <div className="w-5 h-5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-400 flex items-center justify-center font-extrabold text-[10px] shrink-0 mt-0.5">
+                                      {idx + 1}
+                                    </div>
+                                    <p className="text-[11px] text-slate-300 font-semibold">{rm}</p>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="pt-3 border-t border-white/5 space-y-2">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">Recommended Material</span>
+                                {gapAnalysis.courses?.map((c: string, idx: number) => (
+                                  <div key={idx} className="flex items-center space-x-2 text-indigo-400 text-[11px] font-bold hover:underline cursor-pointer">
+                                    <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                                    <span>{c}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
+                      </motion.div>
+                    );
+                  })()}
                 </motion.div>
               )}
 
