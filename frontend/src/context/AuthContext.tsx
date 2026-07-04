@@ -67,7 +67,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Auto-refresh token if expired (401/403) and not calling login or token endpoint
       if ((response.status === 401 || response.status === 403) && endpoint !== '/auth/login' && endpoint !== '/auth/refresh-token') {
         const refresh = localStorage.getItem('refreshToken');
-        if (refresh) {
+        
+        const forceRelogin = () => {
+          if (typeof window !== 'undefined' && !(window as any)._isRedirectingToLogin) {
+            (window as any)._isRedirectingToLogin = true;
+            console.warn('Session expired or mock token detected. Redirecting to login...');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            setAccessToken(null);
+            setUser(null);
+            router.push('/login');
+            // reset after a small delay in case they navigate back
+            setTimeout(() => { (window as any)._isRedirectingToLogin = false; }, 2000);
+          }
+          return new Promise(() => {}); // Halt execution to prevent Next.js error overlay
+        };
+
+        if (refresh && !refresh.startsWith('mock_')) {
           try {
             const refreshRes = await fetch(`${API_URL}/auth/refresh-token`, {
               method: 'POST',
@@ -87,10 +104,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 ...options,
                 headers
               });
+            } else {
+              return forceRelogin();
             }
-          } catch (e) {
+          } catch (e: any) {
             console.error('Failed to auto-refresh session:', e);
           }
+        } else {
+          return forceRelogin();
         }
       }
 
