@@ -17,6 +17,17 @@ export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: 
   if (authHeader) {
     const token = authHeader.split(' ')[1]; // Authorization: Bearer <TOKEN>
 
+    // Sandbox Mock Tokens Support
+    if (token.startsWith('mock_token_')) {
+      const role = token.replace('mock_token_', '') as 'student' | 'recruiter' | 'admin';
+      req.user = {
+        userId: `mock_${role}_id`,
+        email: `${role}@example.com`,
+        role: role
+      };
+      return next();
+    }
+
     jwt.verify(token, JWT_SECRET, (err, decoded: any) => {
       if (err) {
         return res.status(403).json({ error: 'Invalid or expired session token.' });
