@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { BrainCircuit, ArrowLeft, Loader2 } from 'lucide-react';
+import { BrainCircuit, ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
   const { register, verifyOtp } = useAuth();
@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   // Recruiter fields
   const [companyName, setCompanyName] = useState('');
@@ -147,14 +148,23 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Password</label>
-              <input
-                type="password"
-                required
-                placeholder="Password@123"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-white/10 focus:border-indigo-500 focus:outline-none text-sm transition-all"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="Password@123"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-white/10 focus:border-indigo-500 focus:outline-none text-sm transition-all pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             {/* Recruiter specific inputs */}
