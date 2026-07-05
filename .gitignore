@@ -12,6 +12,14 @@ out/
 # Environment files
 .env
 .env.*
+!.env.example
+
+# IDEs and Editors
+.vscode/
+.idea/
+
+# Testing
+coverage/
 
 # Logs
 *.log
