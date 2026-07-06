@@ -11,7 +11,13 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export type AuthenticatedRequestHandler = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => any;
+
+export const authenticateJWT: AuthenticatedRequestHandler = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (authHeader) {
@@ -44,8 +50,8 @@ export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: 
   }
 };
 
-export const authorizeRoles = (roles: ('student' | 'recruiter' | 'admin')[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const authorizeRoles = (roles: ('student' | 'recruiter' | 'admin')[]): AuthenticatedRequestHandler => {
+  return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ error: 'User is not authenticated.' });
     }

@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { dbStore } from '../models/dbStore';
 import { authenticateJWT, authorizeRoles, AuthenticatedRequest } from '../middleware/auth';
 import { aiService } from '../services/aiService';
@@ -6,7 +6,7 @@ import { aiService } from '../services/aiService';
 const router = Router();
 
 // 1. GET STUDENT PROFILE
-router.get('/profile', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res) => {
+router.get('/profile', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const profile = await dbStore.profiles.findByUserId(req.user!.userId);
     if (!profile) {
@@ -21,7 +21,7 @@ router.get('/profile', authenticateJWT, authorizeRoles(['student']), async (req:
 });
 
 // 2. UPDATE PROFILE
-router.put('/profile', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res) => {
+router.put('/profile', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { skills, education, cgpa, projects, certifications, links } = req.body;
     
@@ -56,7 +56,7 @@ router.put('/profile', authenticateJWT, authorizeRoles(['student']), async (req:
 });
 
 // 3. MOCK GITHUB IMPORT
-router.post('/import-github', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res) => {
+router.post('/import-github', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { githubUsername } = req.body;
     if (!githubUsername) return res.status(400).json({ error: 'GitHub username is required.' });
@@ -123,7 +123,7 @@ router.post('/import-github', authenticateJWT, authorizeRoles(['student']), asyn
 });
 
 // 4. MOCK LINKEDIN IMPORT
-router.post('/import-linkedin', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res) => {
+router.post('/import-linkedin', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { linkedinUrl } = req.body;
     if (!linkedinUrl) return res.status(400).json({ error: 'LinkedIn URL is required.' });
@@ -170,7 +170,7 @@ router.post('/import-linkedin', authenticateJWT, authorizeRoles(['student']), as
 });
 
 // 5. GET BOOKMARKED INTERNSHIPS
-router.get('/bookmarks', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res) => {
+router.get('/bookmarks', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const profile = await dbStore.profiles.findByUserId(req.user!.userId);
     if (!profile) return res.status(404).json({ error: 'Profile not found.' });

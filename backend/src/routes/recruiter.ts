@@ -1,11 +1,11 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { dbStore } from '../models/dbStore';
 import { authenticateJWT, authorizeRoles, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
 // 1. GET RECRUITER COMPANY PROFILE
-router.get('/company', authenticateJWT, authorizeRoles(['recruiter']), async (req: AuthenticatedRequest, res) => {
+router.get('/company', authenticateJWT, authorizeRoles(['recruiter']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const recruiter = await dbStore.recruiters.findById(req.user!.userId);
     if (!recruiter) {
@@ -24,7 +24,7 @@ router.get('/company', authenticateJWT, authorizeRoles(['recruiter']), async (re
 });
 
 // 2. UPDATE RECRUITER COMPANY PROFILE
-router.put('/company', authenticateJWT, authorizeRoles(['recruiter']), async (req: AuthenticatedRequest, res) => {
+router.put('/company', authenticateJWT, authorizeRoles(['recruiter']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { name, logo, description, website, location } = req.body;
     if (!name) {

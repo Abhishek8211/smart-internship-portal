@@ -7,7 +7,7 @@ const router = Router();
 // ──────────────────────────────────────────────
 // 1. ADMIN METRICS / STATS (with real activity)
 // ──────────────────────────────────────────────
-router.get('/stats', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.get('/stats', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const users = await dbStore.users.findAll();
     const internships = await dbStore.internships.findAll({});
@@ -114,7 +114,7 @@ router.get('/stats', authenticateJWT, authorizeRoles(['admin']), async (req: Aut
 // ──────────────────────────────────────────────
 // 2. LIST ALL USERS (with search & filter)
 // ──────────────────────────────────────────────
-router.get('/users', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.get('/users', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { search, role, status } = req.query;
     let list = await dbStore.users.findAll();
@@ -160,7 +160,7 @@ router.get('/users', authenticateJWT, authorizeRoles(['admin']), async (req: Aut
 // ──────────────────────────────────────────────
 // 3. SUSPEND / ACTIVATE USER (toggle isVerified)
 // ──────────────────────────────────────────────
-router.put('/users/:id/suspend', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.put('/users/:id/suspend', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = await dbStore.users.findById(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found.' });
@@ -189,7 +189,7 @@ router.put('/users/:id/suspend', authenticateJWT, authorizeRoles(['admin']), asy
 // ──────────────────────────────────────────────
 // 4. DELETE USER
 // ──────────────────────────────────────────────
-router.delete('/users/:id', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.delete('/users/:id', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = await dbStore.users.findById(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found.' });
@@ -234,7 +234,7 @@ router.delete('/users/:id', authenticateJWT, authorizeRoles(['admin']), async (r
 // ──────────────────────────────────────────────
 // 5. CHANGE USER ROLE
 // ──────────────────────────────────────────────
-router.put('/users/:id/role', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.put('/users/:id/role', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { role } = req.body;
     if (!role || !['student', 'recruiter', 'admin'].includes(role)) {
@@ -272,7 +272,7 @@ router.put('/users/:id/role', authenticateJWT, authorizeRoles(['admin']), async 
 // ──────────────────────────────────────────────
 // 6. LIST ALL COMPANIES (admin)
 // ──────────────────────────────────────────────
-router.get('/companies', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.get('/companies', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const companies = await dbStore.companies.findAll();
     res.json(companies);
@@ -284,7 +284,7 @@ router.get('/companies', authenticateJWT, authorizeRoles(['admin']), async (req:
 // ──────────────────────────────────────────────
 // 7. APPROVE / REVOKE COMPANY VERIFICATION
 // ──────────────────────────────────────────────
-router.put('/companies/:id/verify', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.put('/companies/:id/verify', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const company = await dbStore.companies.findById(req.params.id);
     if (!company) return res.status(404).json({ error: 'Company not found.' });
@@ -302,7 +302,7 @@ router.put('/companies/:id/verify', authenticateJWT, authorizeRoles(['admin']), 
 // ──────────────────────────────────────────────
 // 8. DELETE COMPANY
 // ──────────────────────────────────────────────
-router.delete('/companies/:id', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.delete('/companies/:id', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const company = await dbStore.companies.findById(req.params.id);
     if (!company) return res.status(404).json({ error: 'Company not found.' });
@@ -317,7 +317,7 @@ router.delete('/companies/:id', authenticateJWT, authorizeRoles(['admin']), asyn
 // ──────────────────────────────────────────────
 // 9. LIST ALL INTERNSHIPS (admin view)
 // ──────────────────────────────────────────────
-router.get('/internships', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.get('/internships', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const internships = await dbStore.internships.findAll({});
     res.json(internships);
@@ -329,7 +329,7 @@ router.get('/internships', authenticateJWT, authorizeRoles(['admin']), async (re
 // ──────────────────────────────────────────────
 // 10. APPROVE INTERNSHIP POSTING
 // ──────────────────────────────────────────────
-router.put('/internships/:id/approve', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.put('/internships/:id/approve', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const job = await dbStore.internships.findById(req.params.id);
     if (!job) return res.status(404).json({ error: 'Internship posting not found.' });
@@ -344,7 +344,7 @@ router.put('/internships/:id/approve', authenticateJWT, authorizeRoles(['admin']
 // ──────────────────────────────────────────────
 // 11. REJECT / CLOSE INTERNSHIP POSTING
 // ──────────────────────────────────────────────
-router.put('/internships/:id/reject', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res) => {
+router.put('/internships/:id/reject', authenticateJWT, authorizeRoles(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const job = await dbStore.internships.findById(req.params.id);
     if (!job) return res.status(404).json({ error: 'Internship posting not found.' });

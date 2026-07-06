@@ -6,7 +6,7 @@ import { aiService } from '../services/aiService';
 const router = Router();
 
 // 1. APPLY (STUDENT)
-router.post('/', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res) => {
+router.post('/', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { internshipId, coverLetter } = req.body;
     if (!internshipId) return res.status(400).json({ error: 'Internship ID is required.' });
@@ -73,7 +73,7 @@ router.post('/', authenticateJWT, authorizeRoles(['student']), async (req: Authe
 });
 
 // 2. GET APPLICATIONS (ROLE-BASED & AI CANDIDATE RANKING)
-router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const role = req.user!.role;
 
@@ -144,7 +144,7 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
 });
 
 // 3. GET APPLICATION BY ID
-router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const app = await dbStore.applications.findById(req.params.id);
     if (!app) return res.status(404).json({ error: 'Application record not found.' });
@@ -181,7 +181,7 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res) => {
 });
 
 // 4. UPDATE APPLICATION STATUS (RECRUITER)
-router.put('/:id/status', authenticateJWT, authorizeRoles(['recruiter', 'admin']), async (req: AuthenticatedRequest, res) => {
+router.put('/:id/status', authenticateJWT, authorizeRoles(['recruiter', 'admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { status, interviewDateTime, interviewLink, notes, salary, startDate } = req.body;
     if (!status) return res.status(400).json({ error: 'Target status is required.' });

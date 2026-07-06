@@ -23,7 +23,7 @@ const getUserIdFromHeader = (req: AuthenticatedRequest): { userId: string; role:
 };
 
 // 1. GET ALL WITH FILTERS & AI RECOMMENDATIONS
-router.get('/', async (req: AuthenticatedRequest, res) => {
+router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { search, mode, location, sort, limit, offset } = req.query;
 
@@ -65,7 +65,7 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
 });
 
 // 2. GET BY ID (WITH MATCH DETAILS)
-router.get('/:id', async (req: AuthenticatedRequest, res) => {
+router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const job = await dbStore.internships.findById(req.params.id);
     if (!job) return res.status(404).json({ error: 'Internship position not found.' });
@@ -92,7 +92,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res) => {
 });
 
 // 3. CREATE INTERNSHIP (RECRUITER)
-router.post('/', authenticateJWT, authorizeRoles(['recruiter', 'admin']), async (req: AuthenticatedRequest, res) => {
+router.post('/', authenticateJWT, authorizeRoles(['recruiter', 'admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { role, description, location, mode, stipend, duration, skills_required } = req.body;
     if (!role || !description || !location || !mode || !stipend || !duration || !skills_required) {
@@ -123,7 +123,7 @@ router.post('/', authenticateJWT, authorizeRoles(['recruiter', 'admin']), async 
 });
 
 // 4. UPDATE INTERNSHIP (RECRUITER/ADMIN)
-router.put('/:id', authenticateJWT, authorizeRoles(['recruiter', 'admin']), async (req: AuthenticatedRequest, res) => {
+router.put('/:id', authenticateJWT, authorizeRoles(['recruiter', 'admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const job = await dbStore.internships.findById(req.params.id);
     if (!job) return res.status(404).json({ error: 'Position not found.' });
@@ -144,7 +144,7 @@ router.put('/:id', authenticateJWT, authorizeRoles(['recruiter', 'admin']), asyn
 });
 
 // 5. DELETE INTERNSHIP (RECRUITER/ADMIN)
-router.delete('/:id', authenticateJWT, authorizeRoles(['recruiter', 'admin']), async (req: AuthenticatedRequest, res) => {
+router.delete('/:id', authenticateJWT, authorizeRoles(['recruiter', 'admin']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const job = await dbStore.internships.findById(req.params.id);
     if (!job) return res.status(404).json({ error: 'Position not found.' });
@@ -165,7 +165,7 @@ router.delete('/:id', authenticateJWT, authorizeRoles(['recruiter', 'admin']), a
 });
 
 // 6. SAVE INTERNSHIP
-router.post('/:id/save', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res) => {
+router.post('/:id/save', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const profile = await dbStore.profiles.findByUserId(req.user!.userId);
     if (!profile) return res.status(404).json({ error: 'Student profile not found.' });
@@ -183,7 +183,7 @@ router.post('/:id/save', authenticateJWT, authorizeRoles(['student']), async (re
 });
 
 // 7. UNSAVE INTERNSHIP
-router.post('/:id/unsave', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res) => {
+router.post('/:id/unsave', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const profile = await dbStore.profiles.findByUserId(req.user!.userId);
     if (!profile) return res.status(404).json({ error: 'Student profile not found.' });

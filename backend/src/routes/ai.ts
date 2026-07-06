@@ -21,7 +21,7 @@ const parseBufferToText = (buffer: Buffer, fileName: string): string => {
 };
 
 // 1. UPLOAD & PARSE RESUME (STUDENT)
-router.post('/parse-resume', authenticateJWT, authorizeRoles(['student']), upload.single('resume'), async (req: AuthenticatedRequest, res) => {
+router.post('/parse-resume', authenticateJWT, authorizeRoles(['student']), upload.single('resume'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No resume file uploaded.' });
@@ -69,7 +69,7 @@ router.post('/parse-resume', authenticateJWT, authorizeRoles(['student']), uploa
 });
 
 // 2. SKILL GAP ANALYSIS
-router.get('/skill-gap/:internshipId', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res) => {
+router.get('/skill-gap/:internshipId', authenticateJWT, authorizeRoles(['student']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const job = await dbStore.internships.findById(req.params.internshipId);
     if (!job) return res.status(404).json({ error: 'Internship position not found.' });
@@ -85,7 +85,7 @@ router.get('/skill-gap/:internshipId', authenticateJWT, authorizeRoles(['student
 });
 
 // 3. GET CHAT HISTORY
-router.get('/chat', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+router.get('/chat', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   try {
     let chat = await dbStore.chats.findByUserId(req.user!.userId);
     if (!chat) {
@@ -103,7 +103,7 @@ router.get('/chat', authenticateJWT, async (req: AuthenticatedRequest, res) => {
 });
 
 // 4. SEND CHATBOT MESSAGE
-router.post('/chat', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+router.post('/chat', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { message } = req.body;
     if (!message) return res.status(400).json({ error: 'Message cannot be empty.' });
