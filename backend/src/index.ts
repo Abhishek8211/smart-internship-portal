@@ -16,6 +16,7 @@ import studentRoutes from './routes/student';
 import recruiterRoutes from './routes/recruiter';
 import adminRoutes from './routes/admin';
 import notificationRoutes from './routes/notifications';
+import publicRoutes from './routes/public';
 
 import swaggerDocument from './swagger.json';
 
@@ -41,6 +42,7 @@ app.use('/api/student', studentRoutes);
 app.use('/api/recruiter', recruiterRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/public', publicRoutes);
 
 // Base Check
 app.get('/health', (req, res) => {
