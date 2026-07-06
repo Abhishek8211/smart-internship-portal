@@ -44,6 +44,11 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/public', publicRoutes);
 
+// Root Route
+app.get('/', (req, res) => {
+  res.send('Smart Internship Portal API is running!');
+});
+
 // Base Check
 app.get('/health', (req, res) => {
   res.json({
