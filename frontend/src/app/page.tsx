@@ -41,7 +41,11 @@ export default function LandingPage() {
   const [targetStats, setTargetStats] = useState({ students: 0, companies: 0, internships: 0, success: 0 });
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/public/stats')
+    const statsUrl = process.env.NODE_ENV === 'production' 
+      ? `${process.env.NEXT_PUBLIC_API_URL}/api/public/stats`
+      : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/public/stats`;
+
+    fetch(statsUrl)
       .then(res => res.json())
       .then(data => {
         setTargetStats({

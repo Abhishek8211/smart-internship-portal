@@ -32,7 +32,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const API_URL = 'http://localhost:5000/api';
+  const API_URL = process.env.NODE_ENV === 'production' 
+    ? `${process.env.NEXT_PUBLIC_API_URL}/api` 
+    : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api`;
 
   useEffect(() => {
     const savedToken = localStorage.getItem('accessToken');
