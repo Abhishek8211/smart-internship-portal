@@ -22,6 +22,13 @@ const initMailTransporter = async () => {
       auth: { user, pass }
     });
     console.log('✉️ Production SMTP mail transporter configured.');
+  } else if (process.env.NODE_ENV === 'production') {
+    console.warn('⚠️ No SMTP credentials provided in production. Using dummy console transporter to prevent hanging.');
+    transporter = nodemailer.createTransport({
+      streamConfig: {
+        stream: process.stdout
+      }
+    } as any);
   } else {
     try {
       // Create a test account on Ethereal (mock SMTP for sandbox testing)

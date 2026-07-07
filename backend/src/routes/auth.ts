@@ -93,8 +93,8 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Trigger NodeMailer verification email
-    await emailService.sendOtpEmail(email, otp);
+    // Trigger NodeMailer verification email in background
+    emailService.sendOtpEmail(email, otp).catch(console.error);
 
     res.status(201).json({
       message: 'Registration successful. Verification OTP sent to your email.',
@@ -185,7 +185,8 @@ router.post('/login', async (req, res) => {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
       await dbStore.users.update(user._id, { otp, otpExpiry });
-      await emailService.sendOtpEmail(email, otp);
+      // Trigger NodeMailer verification email in background
+      emailService.sendOtpEmail(email, otp).catch(console.error);
 
       return res.status(403).json({
         error: 'Account not verified. Verification OTP sent.',
