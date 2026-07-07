@@ -149,7 +149,7 @@ router.post('/verify-otp', async (req, res) => {
         email: updatedUser.email,
         role: updatedUser.role,
         name: updatedUser.name,
-        profilePic: updatedUser.profilePic
+        profilePic: updatedUser.profilePic || updatedUser.avatar || ''
       }
     });
   } catch (err: any) {
@@ -170,7 +170,12 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    const hashToCompare = user.passwordHash || user.password;
+    if (!hashToCompare) {
+      return res.status(401).json({ error: 'Invalid email or password (user has no password).' });
+    }
+
+    const isMatch = await bcrypt.compare(password, hashToCompare);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
@@ -199,7 +204,7 @@ router.post('/login', async (req, res) => {
         email: user.email,
         role: user.role,
         name: user.name,
-        profilePic: user.profilePic
+        profilePic: user.profilePic || user.avatar || ''
       }
     });
   } catch (err: any) {
