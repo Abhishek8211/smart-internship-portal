@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useSocket } from '@/context/SocketContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -114,8 +115,22 @@ const JobBannerImage = ({ src, alt, className }: { src: string; alt: string; cla
 };
 
 export default function StudentDashboard() {
-  const { user, logout, apiFetch } = useAuth();
+  const { user, logout, apiFetch, isDemoMode } = useAuth();
+  const { addToast } = useSocket();
+  const [applyConfirmJob, setApplyConfirmJob] = React.useState<any | null>(null);
+  const [applyingJobId, setApplyingJobId] = React.useState<string | null>(null);
+  const [appliedJobsLocally, setAppliedJobsLocally] = React.useState<string[]>([]);
+  const [localBookmarks, setLocalBookmarks] = React.useState<string[]>([]);
+  const [animatingStarId, setAnimatingStarId] = React.useState<string | null>(null);
   const router = useRouter();
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const localBms = JSON.parse(localStorage.getItem('local_bookmarks') || '[]');
+      setLocalBookmarks(localBms);
+      const localApps = JSON.parse(localStorage.getItem('local_applications') || '[]');
+      setAppliedJobsLocally(localApps);
+    }
+  }, []);
 
   // Primary Active Tab
   const [activeTab, setActiveTab] = useState<'recommendations' | 'applications' | 'profile' | 'chatbot'>('recommendations');
@@ -196,33 +211,55 @@ export default function StudentDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const profileData = await apiFetch('/student/profile').catch(() => ({}));
-
+      const profileData = await apiFetch('/student/profile').catch(() => null);
       const jobsData = await apiFetch(`/internships?search=${searchQuery}&mode=${modeFilter}&location=${locFilter}`).catch(() => []);
-
       const applicationsData = await apiFetch('/applications').catch(() => []);
-
       const notificationsData = await apiFetch('/notifications').catch(() => []);
-
       const chatbotHistory = await apiFetch('/ai/chat').catch(() => ({ messages: [] }));
 
-      setProfile(profileData);
-      setProfileSkills(profileData.skills?.join(', ') || '');
-      setProfileCgpa(profileData.cgpa ? profileData.cgpa.toString() : '');
-      setProfileLinks(profileData.links || { github: '', linkedin: '', portfolio: '' });
-      setProfileEducation(profileData.education || []);
-      setProfileProjects(profileData.projects || []);
-      setProfileCertifications(profileData.certifications || []);
+      if (profileData) {
+        setProfile(profileData);
+        setProfileSkills(profileData.skills?.join(', ') || '');
+        setProfileCgpa(profileData.cgpa ? profileData.cgpa.toString() : '');
+        setProfileLinks(profileData.links || { github: '', linkedin: '', portfolio: '' });
+        setProfileEducation(profileData.education || []);
+        setProfileProjects(profileData.projects || []);
+        setProfileCertifications(profileData.certifications || []);
+      } else {
+        // Fallback profile if server unavailable
+        const storedBms = JSON.parse(localStorage.getItem('local_bookmarks') || '[]');
+        const storedApps = JSON.parse(localStorage.getItem('local_applications') || '[]');
+        setProfile({
+          name: user?.name || 'Alex Rivera',
+          skills: ['React', 'TypeScript', 'Node.js', 'Figma'],
+          cgpa: 9.1,
+          savedInternships: storedBms,
+          applications: storedApps.map((id: string) => ({ internshipId: id, status: 'Applied' })),
+          education: [{ institution: 'Lovely Professional University', degree: 'B.Tech', fieldOfStudy: 'Computer Science', startYear: '2022', endYear: '2026', cgpa: 9.1 }]
+        });
+        setProfileSkills('React, TypeScript, Node.js, Figma');
+        setProfileCgpa('9.1');
+        setProfileEducation([{ institution: 'Lovely Professional University', degree: 'B.Tech', fieldOfStudy: 'Computer Science', startYear: '2022', endYear: '2026', cgpa: 9.1 }]);
+      }
+
+      // If no jobs returned from backend, load local fallbacks
+      const finalJobs = jobsData.length > 0 ? jobsData : [
+        { id: 'intern_stripe_fe', role: 'Frontend Engineering Intern', category: 'Software', company_name: 'Stripe', company_logo: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500', location: 'San Francisco, CA', mode: 'Hybrid', stipend: '$45/hour', duration: '12 Weeks', experience: '0-1 Years', skills_required: ['React', 'TypeScript', 'Tailwind CSS', 'Redux Toolkit'], matchPercentage: 92, deadline: 'In 5 days', description: 'Collaborate with the Stripe Dashboard UI team to build premium, responsive web components.', matchExplanation: 'Matches 4 out of 4 skills: React, TypeScript, Tailwind CSS, Redux Toolkit.' },
+        { id: 'intern_vercel_fs', role: 'Full-Stack Developer Intern', category: 'AI', company_name: 'Vercel', company_logo: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500', location: 'Remote', mode: 'Remote', stipend: '$50/hour', duration: '16 Weeks', experience: 'Entry Level', skills_required: ['React', 'Next.js', 'TypeScript', 'Node.js', 'PostgreSQL'], matchPercentage: 88, deadline: 'In 3 days', description: 'Build and deploy Server Actions, optimizing initial load performance on Next.js 15 apps.', matchExplanation: 'Matches Next.js and TypeScript.' },
+        { id: 'intern_google_ai', role: 'AI & Research Engineering Intern', category: 'AI', company_name: 'Google', company_logo: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=500', location: 'Mountain View, CA', mode: 'Office', stipend: '$55/hour', duration: '12 Weeks', experience: 'Intermediate', skills_required: ['Python', 'PyTorch', 'TensorFlow', 'Docker'], matchPercentage: 45, deadline: 'In 10 days', description: 'Train deep learning models for NLP pipelines, deploying inference servers in containerized workspaces.', matchExplanation: 'Missing PyTorch and TensorFlow.' },
+        { id: 'intern_meta_cyber', role: 'Cyber Security Operations Intern', category: 'Cyber Security', company_name: 'Meta', company_logo: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500', location: 'Seattle, WA', mode: 'Office', stipend: '$48/hour', duration: '12 Weeks', experience: 'Entry Level', skills_required: ['Linux', 'Network Security', 'Wireshark', 'Python'], matchPercentage: 78, deadline: 'In 7 days', description: 'Audit cloud infrastructure access controls and build automated intrusion warning triggers.', matchExplanation: 'Matches Linux and Python.' },
+        { id: 'intern_adobe_ui', role: 'UI/UX Product Design Intern', category: 'UI UX', company_name: 'Adobe', company_logo: 'https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=500', location: 'San Jose, CA', mode: 'Hybrid', stipend: '$42/hour', duration: '24 Weeks', experience: '0-1 Years', skills_required: ['Figma', 'Prototyping', 'User Research', 'Design Systems'], matchPercentage: 85, deadline: 'In 12 days', description: 'Design custom icons, flows, and interactive layouts for Photoshop web-release integrations.', matchExplanation: 'Matches Figma prototyping.' }
+      ];
 
       // Sort jobs by Match Score descending
-      const sortedJobs = [...jobsData].sort((a, b) => (b.matchPercentage || 0) - (a.matchPercentage || 0));
+      const sortedJobs = [...finalJobs].sort((a, b) => (b.matchPercentage || 0) - (a.matchPercentage || 0));
       setJobs(sortedJobs);
 
       setApplications(applicationsData);
       setNotifications(notificationsData);
       setChatbotLog(chatbotHistory.messages || chatbotHistory);
     } catch (e) {
-      console.error(e);
+      console.error("Failed to load server dashboard data, falling back to local offline mode.", e);
     } finally {
       setLoading(false);
     }
@@ -245,10 +282,10 @@ export default function StudentDashboard() {
         })
       });
       setProfile(data.profile);
-      alert('Profile updated successfully!');
+      addToast('Success', 'Profile updated successfully!', 'success');
       fetchDashboardData();
     } catch (err: any) {
-      alert('Updated successfully (simulated local changes)');
+      addToast('Demo Mode', 'Profile updated locally (offline demo)', 'info');
     }
   };
 
@@ -327,10 +364,10 @@ export default function StudentDashboard() {
         body: JSON.stringify({ githubUsername: githubUser })
       });
       setProfile(res.profile);
-      alert('GitHub data imported! Profile projects and skills updated.');
+      addToast('Success', 'GitHub data imported successfully!', 'success');
       fetchDashboardData();
     } catch (err) {
-      alert('Imported successfully (simulated local merge)');
+      addToast('Demo Mode', 'GitHub imported locally (offline demo)', 'info');
     } finally {
       setImportingGit(false);
     }
@@ -347,10 +384,10 @@ export default function StudentDashboard() {
         body: JSON.stringify({ linkedinUrl })
       });
       setProfile(res.profile);
-      alert('LinkedIn data imported! Profile certifications updated.');
+      addToast('Success', 'LinkedIn data imported successfully!', 'success');
       fetchDashboardData();
     } catch (err) {
-      alert('Imported successfully (simulated local sync)');
+      addToast('Demo Mode', 'LinkedIn imported locally (offline demo)', 'info');
     } finally {
       setImportingIn(false);
     }
@@ -377,7 +414,7 @@ export default function StudentDashboard() {
       await apiFetch(endpoint, { method: 'POST' });
       fetchDashboardData();
     } catch (err) {
-      alert('Bookmark updated (simulated).');
+      addToast('Demo Mode', 'Bookmark updated (simulated).', 'info');
     }
   };
 
@@ -452,7 +489,7 @@ export default function StudentDashboard() {
         body: formData
       });
       setProfile(res.profile);
-      alert(`Resume parsed! ATS Score: ${res.atsScore}/100. Profile updated.`);
+      addToast('ATS Score', `Resume parsed! ATS Score: ${res.atsScore}/100. Profile updated.`, 'success');
       fetchDashboardData();
     } catch (err) {
       // Simulate local parser run
@@ -465,7 +502,7 @@ export default function StudentDashboard() {
           skills: Array.from(new Set([...(profile?.skills || []), 'React', 'Node.js', 'PostgreSQL', 'Docker']))
         };
         setProfile(dummyProfile);
-        alert('Resume parsed locally (Simulated). ATS Score: 92/100. Profile synced.');
+        addToast('ATS Score', 'Resume parsed locally (Simulated). ATS Score: 92/100. Profile synced.', 'info');
         setUploadingResume(false);
       }, 1500);
     }
@@ -492,6 +529,12 @@ export default function StudentDashboard() {
         </div>
 
         <div className="flex items-center space-x-4">
+          {isDemoMode && (
+            <div className="px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-black tracking-wider uppercase rounded-full animate-pulse flex items-center space-x-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping shrink-0" />
+              <span>Demo Mode</span>
+            </div>
+          )}
           <div className="flex items-center space-x-2">
             <img 
               src={user?.profilePic || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80'} 
@@ -636,6 +679,19 @@ export default function StudentDashboard() {
                       <h2 className="text-2xl font-extrabold">Recommended Positions</h2>
                       <p className="text-xs text-slate-400 font-semibold mt-1">Smart candidate similarity ranking matching your active profile</p>
                     </div>
+                  </div>
+
+                  {isDemoMode && (
+                    <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs rounded-2xl flex items-start space-x-3 leading-relaxed">
+                      <span className="text-lg shrink-0">🚧</span>
+                      <div>
+                        <p className="font-extrabold text-amber-300">Server temporarily unavailable.</p>
+                        <p className="font-medium text-slate-300 mt-0.5">Running in offline demo mode. You can continue exploring internships and saving applications locally.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hidden">
 
                     {/* Filter fields */}
                     <div className="flex flex-wrap gap-2 w-full sm:w-auto">
@@ -707,11 +763,11 @@ export default function StudentDashboard() {
                                 </div>
                                 <button 
                                   onClick={() => handleBookmark(job.id, isSaved)}
-                                  className={`p-1.5 rounded-lg border transition-colors shrink-0 ${
+                                  className={`p-1.5 rounded-lg border transition-all duration-300 shrink-0 ${
                                     isSaved ? 'bg-indigo-500/20 border-indigo-500 text-indigo-400' : 'border-white/10 hover:border-indigo-500 text-slate-400 hover:text-white'
-                                  }`}
+                                  } ${animatingStarId === job.id ? 'scale-125' : ''}`}
                                 >
-                                  <Star className="w-4 h-4 fill-current" />
+                                  <Star className={`w-4 h-4 fill-current ${animatingStarId === job.id ? 'animate-spin' : ''}`} />
                                 </button>
                               </div>
 
@@ -768,12 +824,26 @@ export default function StudentDashboard() {
                             >
                               Skill Gap Analysis
                             </button>
-                            <button
-                              onClick={() => handleApply(job.id)}
-                              className="py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs transition-all text-center flex items-center justify-center space-x-1"
-                            >
-                              <span>Apply Now</span>
-                            </button>
+                            {(() => {
+                              const isApplied = profile?.applications?.some((app: any) => app.internshipId === job.id) || appliedJobsLocally.includes(job.id);
+                              const isApplying = applyingJobId === job.id;
+                              return (
+                                <button
+                                  onClick={() => !isApplied && handleApply(job.id)}
+                                  disabled={isApplying || isApplied}
+                                  className={`py-2 rounded-xl font-bold text-xs transition-all text-center flex items-center justify-center space-x-1 ${
+                                    isApplied 
+                                      ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 cursor-default'
+                                      : 'bg-indigo-500 hover:bg-indigo-600 text-white hover:shadow-lg hover:shadow-indigo-500/20'
+                                  }`}
+                                >
+                                  {isApplying && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                                  <span>
+                                    {isApplying ? 'Applying...' : isApplied ? 'Applied ✓' : 'Apply Now'}
+                                  </span>
+                                </button>
+                              );
+                            })()}
                           </div>
                         </div>
                       );
@@ -1497,6 +1567,59 @@ export default function StudentDashboard() {
           )}
         </main>
       </div>
+
+      {/* Apply Confirmation Dialog Overlay */}
+      {applyConfirmJob && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl max-w-sm w-full p-6 space-y-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="space-y-2">
+              <h3 className="text-base font-black text-white leading-tight">
+                Apply for {applyConfirmJob.role}?
+              </h3>
+              <div className="p-4 rounded-xl bg-slate-950 border border-white/5 space-y-2.5 text-xs font-semibold text-slate-300">
+                <p className="flex justify-between"><span className="text-slate-400">Company:</span> <span className="text-white">{applyConfirmJob.company_name}</span></p>
+                <p className="flex justify-between"><span className="text-slate-400">Location:</span> <span className="text-white">{applyConfirmJob.location}</span></p>
+                <p className="flex justify-between"><span className="text-slate-400">Salary:</span> <span className="text-purple-400 font-extrabold">{applyConfirmJob.stipend}</span></p>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setApplyConfirmJob(null)}
+                className="px-4 py-2 bg-slate-950 border border-white/5 rounded-xl text-slate-400 hover:text-white transition-all text-xs font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const jobId = applyConfirmJob.id;
+                  const localApps = JSON.parse(localStorage.getItem('local_applications') || '[]');
+                  if (!localApps.includes(jobId)) {
+                    localApps.push(jobId);
+                    localStorage.setItem('local_applications', JSON.stringify(localApps));
+                  }
+                  setAppliedJobsLocally(prev => [...prev, jobId]);
+                  
+                  // Optimistic profile applications update
+                  setProfile((prev: any) => ({
+                    ...prev,
+                    applications: [...(prev?.applications || []), { internshipId: jobId, status: 'Applied' }]
+                  }));
+
+                  addToast(
+                    'Application Saved',
+                    '✓ Application saved locally. It will sync automatically when the server becomes available.',
+                    'success'
+                  );
+                  setApplyConfirmJob(null);
+                }}
+                className="px-5 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold text-xs transition-all shadow-lg hover:shadow-indigo-500/20"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

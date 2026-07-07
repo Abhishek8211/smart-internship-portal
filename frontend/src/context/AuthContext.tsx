@@ -1,8 +1,8 @@
-'use strict';
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { triggerGlobalToast } from './SocketContext';
 
 export interface User {
   id: string;
@@ -16,6 +16,7 @@ interface AuthContextType {
   user: User | null;
   accessToken: string | null;
   loading: boolean;
+  isDemoMode: boolean;
   login: (email: string, password: string) => Promise<any>;
   register: (data: any) => Promise<any>;
   verifyOtp: (email: string, otp: string) => Promise<any>;
@@ -29,6 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const router = useRouter();
 
   const getBaseUrl = () => {
@@ -49,9 +51,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(JSON.parse(savedUser));
     }
     setLoading(false);
+
+    // Detect if running in demo mode
+    const hasBackend = !!process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL !== 'http://localhost:5000';
+    if (!hasBackend) {
+      setIsDemoMode(true);
+    }
+
+    const handleServerUnavailable = () => {
+      setIsDemoMode(true);
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('server-unavailable', handleServerUnavailable);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('server-unavailable', handleServerUnavailable);
+      }
+    };
   }, []);
 
-  const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
+  const apiFetch = async (endpoint: string, options: RequestInit = {}, retryCount = 1): Promise<any> => {
     let token = accessToken || localStorage.getItem('accessToken');
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string>)
@@ -64,11 +84,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
+    // Abort controller for timeouts
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     try {
       let response = await fetch(`${API_URL}${endpoint}`, {
         ...options,
-        headers
+        headers,
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       // Auto-refresh token if expired (401/403) and not calling login or token endpoint
       if ((response.status === 401 || response.status === 403) && endpoint !== '/auth/login' && endpoint !== '/auth/refresh-token') {
@@ -84,10 +110,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setAccessToken(null);
             setUser(null);
             router.push('/login');
-            // reset after a small delay in case they navigate back
             setTimeout(() => { (window as any)._isRedirectingToLogin = false; }, 2000);
           }
-          return new Promise(() => {}); // Halt execution to prevent Next.js error overlay
+          return new Promise(() => {}); // Halt execution
         };
 
         if (refresh) {
@@ -123,11 +148,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+        const errMsg = errorData.error || `HTTP error! Status: ${response.status}`;
+        triggerGlobalToast("API Error", errMsg, "alert");
+        throw new Error(errMsg);
       }
 
       return await response.json();
     } catch (err: any) {
+      clearTimeout(timeoutId);
+      
+      // Retry once on failure
+      if (retryCount > 0) {
+        console.warn(`Retrying API fetch to: ${endpoint}`);
+        return apiFetch(endpoint, options, retryCount - 1);
+      }
+
+      // Check if it is a server availability / network error
+      const isNetworkError = err.name === 'AbortError' || err.message === 'Failed to fetch' || err.message?.includes('NetworkError');
+      if (isNetworkError) {
+        console.warn(`Server unavailable. Falling back to offline/demo simulation.`);
+        setIsDemoMode(true);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('server-unavailable'));
+        }
+      } else {
+        triggerGlobalToast("Fetch Error", err.message || "Network request failed.", "alert");
+      }
       throw err;
     }
   };
@@ -196,7 +242,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, loading, login, register, verifyOtp, logout, apiFetch }}>
+    <AuthContext.Provider value={{ user, accessToken, loading, isDemoMode, login, register, verifyOtp, logout, apiFetch }}>
       {children}
     </AuthContext.Provider>
   );

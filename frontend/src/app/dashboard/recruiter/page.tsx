@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useSocket } from '@/context/SocketContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -12,6 +13,7 @@ import {
 
 export default function RecruiterDashboard() {
   const { user, logout, apiFetch } = useAuth();
+  const { addToast } = useSocket();
   const router = useRouter();
 
   // Navigation Panel
@@ -116,7 +118,7 @@ export default function RecruiterDashboard() {
             skills_required: skillsArray
           })
         });
-        alert('Internship position updated successfully!');
+        addToast('Success', 'Internship position updated successfully!', 'success');
       } else {
         // Post flow
         await apiFetch('/internships', {
@@ -131,7 +133,7 @@ export default function RecruiterDashboard() {
             skills_required: skillsArray
           })
         });
-        alert('Internship position posted successfully!');
+        addToast('Success', 'Internship position posted successfully!', 'success');
       }
       
       // Clear inputs
@@ -146,7 +148,7 @@ export default function RecruiterDashboard() {
       setActiveTab('listings');
       fetchDashboardData();
     } catch (err: any) {
-      alert(editingJob ? 'Updated successfully (simulated local changes)' : 'Posted successfully (simulated local changes)');
+      addToast('Demo Mode', editingJob ? 'Updated successfully (simulated local changes)' : 'Posted successfully (simulated local changes)', 'info');
       setEditingJob(null);
       setActiveTab('listings');
       fetchDashboardData();
@@ -170,10 +172,10 @@ export default function RecruiterDashboard() {
           location: companyLoc
         })
       });
-      alert('Company profile updated successfully!');
+      addToast('Success', 'Company profile updated successfully!', 'success');
       fetchDashboardData();
     } catch (err: any) {
-      alert('Updated successfully (simulated local changes)');
+      addToast('Demo Mode', 'Updated successfully (simulated local changes)', 'info');
     } finally {
       setSavingCompany(false);
     }
@@ -186,7 +188,7 @@ export default function RecruiterDashboard() {
       await apiFetch(`/internships/${jobId}`, { method: 'DELETE' });
       fetchDashboardData();
     } catch (err) {
-      alert('Delete completed (simulated).');
+      addToast('Demo Mode', 'Delete completed (simulated).', 'info');
     }
   };
 
@@ -199,7 +201,7 @@ export default function RecruiterDashboard() {
       });
       fetchDashboardData();
     } catch (err) {
-      alert('Status updated to Shortlisted (simulated).');
+      addToast('Demo Mode', 'Status updated to Shortlisted (simulated).', 'info');
     }
   };
 
@@ -212,7 +214,7 @@ export default function RecruiterDashboard() {
       });
       fetchDashboardData();
     } catch (err) {
-      alert('Status updated to Rejected (simulated).');
+      addToast('Demo Mode', 'Status updated to Rejected (simulated).', 'info');
     }
   };
 
@@ -236,11 +238,11 @@ export default function RecruiterDashboard() {
           notes: interviewNotes
         })
       });
-      alert('Interview Scheduled! AI practice questions generated for candidate.');
+      addToast('Success', 'Interview Scheduled! AI practice questions generated.', 'success');
       setSchedulingApp(null);
       fetchDashboardData();
     } catch (err) {
-      alert('Interview Scheduled & AI practice sheets generated (simulated).');
+      addToast('Demo Mode', 'Interview Scheduled & AI practice sheets generated.', 'info');
       setSchedulingApp(null);
     } finally {
       setSchedulingLoading(false);
@@ -267,11 +269,11 @@ export default function RecruiterDashboard() {
           startDate: offerStartDate
         })
       });
-      alert('Offer letter sent to candidate successfully!');
+      addToast('Success', 'Offer letter sent successfully!', 'success');
       setOfferingApp(null);
       fetchDashboardData();
     } catch (err) {
-      alert('Offer letter logged and candidate notified (simulated).');
+      addToast('Demo Mode', 'Offer letter logged (simulated).', 'info');
       setOfferingApp(null);
     } finally {
       setOfferingLoading(false);
