@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function LandingPage() {
-  const { mockLogin, user } = useAuth();
+  const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   // Active Category Filter
@@ -564,12 +564,12 @@ export default function LandingPage() {
               <p className="text-xs text-slate-400 leading-relaxed font-semibold">
                 Explore matched job metrics, ATS checklist, parse resumes, and consult with the AI Counselor.
               </p>
-              <button 
-                onClick={() => mockLogin('student')}
-                className="w-full py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md"
+              <Link 
+                href="/login"
+                className="w-full py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md block text-center"
               >
                 Log In as Student
-              </button>
+              </Link>
             </div>
 
             {/* Recruiter card */}
@@ -582,12 +582,12 @@ export default function LandingPage() {
               <p className="text-xs text-slate-400 leading-relaxed font-semibold">
                 Manage listings (Full CRUD), filter candidates sorted by AI scores, and generate custom interview practice questions.
               </p>
-              <button 
-                onClick={() => mockLogin('recruiter')}
-                className="w-full py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md"
+              <Link 
+                href="/login"
+                className="w-full py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md block text-center"
               >
                 Log In as Recruiter
-              </button>
+              </Link>
             </div>
 
             {/* Admin card */}
@@ -600,12 +600,12 @@ export default function LandingPage() {
               <p className="text-xs text-slate-400 leading-relaxed font-semibold">
                 Verify recruiter companies status, suspend rogue accounts, audit system activities, and review stats graph.
               </p>
-              <button 
-                onClick={() => mockLogin('admin')}
-                className="w-full py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md"
+              <Link 
+                href="/login"
+                className="w-full py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md block text-center"
               >
                 Log In as Admin
-              </button>
+              </Link>
             </div>
           </div>
         </div>
