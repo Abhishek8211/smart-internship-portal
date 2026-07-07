@@ -185,13 +185,15 @@ export default function AdminDashboard() {
 
   // Auth guard
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       router.push('/login');
       return;
     }
-    fetchDashboardData();
+    if (user) {
+      fetchDashboardData();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, loading]);
 
   // ─── Data fetching ───
   const fetchDashboardData = async () => {
