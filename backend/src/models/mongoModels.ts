@@ -11,7 +11,7 @@ export interface IUser extends Document {
   otp?: string;
   otpExpiry?: Date;
   profilePic?: string; // for new users
-  avatar?: string; // for legacy users
+  avatar?: any; // for legacy users
   refreshTokens?: string[];
   createdAt: Date;
 }
@@ -26,7 +26,7 @@ const UserSchema = new Schema<IUser>({
   otp: { type: String },
   otpExpiry: { type: Date },
   profilePic: { type: String, default: '' },
-  avatar: { type: String },
+  avatar: { type: Schema.Types.Mixed },
   refreshTokens: [{ type: String }]
 }, { timestamps: true });
 

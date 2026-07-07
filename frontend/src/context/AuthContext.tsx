@@ -1,4 +1,3 @@
-'use strict';
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -152,10 +151,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const register = async (formData: any) => {
     try {
-      return await apiFetch('/auth/register', {
+      const data = await apiFetch('/auth/register', {
         method: 'POST',
         body: JSON.stringify(formData)
       });
+
+      // Auto-login: backend now returns tokens on registration
+      if (data.accessToken && data.refreshToken && data.user) {
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setAccessToken(data.accessToken);
+        setUser(data.user);
+      }
+
+      return data;
     } catch (err) {
       throw err;
     }
