@@ -60,7 +60,7 @@ export const sampleCompanies = [
   {
     id: 'comp_stripe',
     name: 'Stripe',
-    logo: 'https://images.unsplash.com/photo-1618401471353-b98aedd07871?w=100',
+    logo: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500',
     description: 'Financial infrastructure for the internet. Millions of businesses of every size use Stripe to accept payments and manage their businesses online.',
     website: 'https://stripe.com',
     location: 'San Francisco, CA (Hybrid)',
@@ -70,7 +70,7 @@ export const sampleCompanies = [
   {
     id: 'comp_vercel',
     name: 'Vercel',
-    logo: 'https://images.unsplash.com/photo-1618401471353-b98aedd07871?w=100&q=80', // Replace with a clean logo
+    logo: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500',
     description: 'Vercel provides the developer experience and infrastructure to build, deploy, and scale frontend web applications globally.',
     website: 'https://vercel.com',
     location: 'New York, NY (Remote)',
@@ -80,7 +80,7 @@ export const sampleCompanies = [
   {
     id: 'comp_google',
     name: 'Google',
-    logo: 'https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=100',
+    logo: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=500',
     description: 'Google’s mission is to organize the world’s information and make it universally accessible and useful.',
     website: 'https://google.com',
     location: 'Mountain View, CA (Office)',

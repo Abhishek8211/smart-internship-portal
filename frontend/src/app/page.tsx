@@ -12,6 +12,108 @@ import {
   ChevronDown, Heart, Eye, ArrowUpRight, HelpCircle, Bot
 } from 'lucide-react';
 
+
+// Banner images database helper
+
+// Helper to get category-specific icon, labels and colors matching the e-commerce layout
+const getCategoryBadge = (category: string) => {
+  const cat = (category || "").toLowerCase();
+  if (cat.includes("software") || cat.includes("devops") || cat.includes("cloud")) {
+    return {
+      label: "Software",
+      color: "bg-indigo-500/20 border-indigo-500/30 text-indigo-300",
+      icon: "💻"
+    };
+  }
+  if (cat.includes("ai") || cat.includes("ml") || cat.includes("data")) {
+    return {
+      label: "AI / Data",
+      color: "bg-purple-500/20 border-purple-500/30 text-purple-300",
+      icon: "✨"
+    };
+  }
+  if (cat.includes("security") || cat.includes("cyber")) {
+    return {
+      label: "Security",
+      color: "bg-rose-500/20 border-rose-500/30 text-rose-300",
+      icon: "🛡️"
+    };
+  }
+  if (cat.includes("design") || cat.includes("ui") || cat.includes("ux")) {
+    return {
+      label: "UI / UX",
+      color: "bg-teal-500/20 border-teal-500/30 text-teal-300",
+      icon: "🎨"
+    };
+  }
+  return {
+    label: category || "Tech",
+    color: "bg-slate-500/20 border-slate-500/30 text-slate-300",
+    icon: "💼"
+  };
+};
+
+const getBannerForJob = (job: any) => {
+  const company = (job.company_name || job.company?.name || "").toLowerCase();
+  const category = (job.category || "").toLowerCase();
+  
+  if (company.includes("stripe")) {
+    return "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500&auto=format&fit=crop&q=80";
+  }
+  if (company.includes("vercel")) {
+    return "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&auto=format&fit=crop&q=80";
+  }
+  if (company.includes("google")) {
+    return "https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&auto=format&fit=crop&q=80";
+  }
+  if (company.includes("meta")) {
+    return "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500&auto=format&fit=crop&q=80";
+  }
+  if (company.includes("adobe")) {
+    return "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=500&auto=format&fit=crop&q=80";
+  }
+  
+  // Category Fallbacks
+  if (category.includes("ai") || category.includes("machine") || category.includes("data")) {
+    return "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&auto=format&fit=crop&q=80";
+  }
+  if (category.includes("security") || category.includes("cyber") || category.includes("network")) {
+    return "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=500&auto=format&fit=crop&q=80";
+  }
+  if (category.includes("design") || category.includes("ui") || category.includes("ux") || category.includes("product")) {
+    return "https://images.unsplash.com/photo-1541462608141-2ff03cca742e?w=500&auto=format&fit=crop&q=80";
+  }
+  
+  return "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500&auto=format&fit=crop&q=80";
+};
+
+// Lazy loaded Image Component with Skeleton Loading and Fail-safe Fallback
+const JobBannerImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
+  const [loading, setLoading] = React.useState(true);
+  const [imgSrc, setImgSrc] = React.useState(src);
+
+  return (
+    <div className="relative w-full h-full bg-[#0F1225] overflow-hidden">
+      {loading && (
+        <div className="absolute inset-0 bg-[#0F1225] animate-pulse flex items-center justify-center">
+          <div className="w-6 h-6 rounded-full border-2 border-slate-700 border-t-purple-500 animate-spin" />
+        </div>
+      )}
+      <img
+        src={imgSrc}
+        alt={alt}
+        className={`${className} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          setImgSrc("https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500&auto=format&fit=crop&q=80");
+          setLoading(false);
+        }}
+        loading="lazy"
+      />
+    </div>
+  );
+};
+
 export default function LandingPage() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -445,7 +547,7 @@ export default function LandingPage() {
             </span>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             <AnimatePresence mode="popLayout">
               {filteredJobs.map(job => (
                 <motion.div
@@ -455,66 +557,96 @@ export default function LandingPage() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.4 }}
                   key={job.id}
-                  className="glowing-card p-6 flex flex-col justify-between h-[360px] relative overflow-hidden"
+                  className="glowing-card flex flex-col justify-between min-h-[480px] relative overflow-hidden group hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 rounded-2xl border border-white/5"
                 >
                   <div>
-                    {/* Header */}
-                    <div className="flex justify-between items-start gap-3 mb-4">
-                      <div className="flex items-center space-x-3">
-                        <img 
-                          src={job.company_logo} 
-                          alt={job.company_name} 
-                          className="w-10 h-10 rounded-xl object-cover border border-white/10" 
-                        />
+                    {/* Top cover image banner (e-commerce style) */}
+                    <div className="relative w-full h-44 overflow-hidden rounded-t-2xl">
+                      <JobBannerImage 
+                        src={getBannerForJob(job)} 
+                        alt={job.company_name} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-550" 
+                      />
+                      {/* Overlay Category badge (mirrors blinkit/instamart layout) */}
+                      {(() => {
+                        const badge = getCategoryBadge(job.category);
+                        return (
+                          <span className={`absolute top-3 right-3 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border flex items-center space-x-1 backdrop-blur-md ${badge.color}`}>
+                            <span>{badge.icon}</span>
+                            <span>{badge.label}</span>
+                          </span>
+                        );
+                      })()}
+                      {/* Overlay Company rating badge */}
+                      <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-amber-400 text-[9px] font-black px-2 py-0.5 rounded-md flex items-center space-x-1 border border-white/5">
+                        <span>⭐</span>
+                        <span>{job.rating || '4.8'}</span>
+                      </span>
+                    </div>
+
+                    {/* Text content details inside padded layout */}
+                    <div className="p-5">
+                      <div className="flex justify-between items-start gap-2 mb-3">
                         <div>
-                          <h4 className="font-extrabold text-sm text-white tracking-wide leading-tight">{job.role}</h4>
-                          <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{job.company_name}</span>
+                          <h4 className="font-extrabold text-sm text-white tracking-wide leading-tight group-hover:text-purple-400 transition-colors">
+                            {job.role}
+                          </h4>
+                          {/* Store/Company name with shop icon */}
+                          <span className="text-[10px] text-slate-400 font-bold flex items-center space-x-1 mt-1">
+                            <span>🏢</span>
+                            <span>{job.company_name}</span>
+                          </span>
                         </div>
+                        <button 
+                          onClick={() => toggleSaveJob(job.id)}
+                          className="p-1.5 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 hover:text-rose-400 transition-colors shrink-0"
+                        >
+                          <Heart className={`w-4 h-4 ${savedJobs.includes(job.id) ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />
+                        </button>
                       </div>
 
-                      <button 
-                        onClick={() => toggleSaveJob(job.id)}
-                        className="p-1.5 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 hover:text-rose-400 transition-colors"
-                      >
-                        <Heart className={`w-4 h-4 ${savedJobs.includes(job.id) ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />
-                      </button>
-                    </div>
+                      {/* Brief description */}
+                      <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed mb-4">
+                        {job.description}
+                      </p>
 
-                    {/* Metadata tags */}
-                    <div className="flex flex-wrap gap-2 text-[10px] text-slate-400 mb-4 font-bold uppercase tracking-wider">
-                      <span className="flex items-center space-x-1 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
-                        <MapPin className="w-3 h-3 text-purple-400" />
-                        <span>{job.location}</span>
-                      </span>
-                      <span className="flex items-center space-x-1 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
-                        <Clock className="w-3 h-3 text-indigo-400" />
-                        <span>{job.duration} ({job.mode})</span>
-                      </span>
-                      <span className="flex items-center space-x-1 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
-                        <DollarSign className="w-3 h-3 text-teal-400" />
-                        <span>{job.stipend}</span>
-                      </span>
-                    </div>
+                      {/* Metadata tags */}
+                      <div className="flex flex-wrap gap-2 text-[9px] text-slate-400 mb-4 font-bold uppercase tracking-wider">
+                        <span className="flex items-center space-x-1 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
+                          <MapPin className="w-3 h-3 text-purple-400" />
+                          <span>{job.location}</span>
+                        </span>
+                        <span className="flex items-center space-x-1 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
+                          <Clock className="w-3 h-3 text-indigo-400" />
+                          <span>{job.duration} ({job.mode})</span>
+                        </span>
+                        {/* Bold Stipend Display Price style */}
+                        <span className="text-purple-400 font-black text-xs block">
+                          {job.stipend}
+                        </span>
+                      </div>
 
-                    {/* Skills list */}
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {job.skills_required.slice(0, 3).map(sk => (
-                        <span key={sk} className="px-2 py-0.5 rounded text-[9px] font-bold bg-white/5 border border-white/5 text-slate-300">
-                          {sk}
-                        </span>
-                      ))}
-                      {job.skills_required.length > 3 && (
-                        <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-white/5 border border-white/5 text-slate-500">
-                          +{job.skills_required.length - 3} more
-                        </span>
-                      )}
+                      {/* Skills list */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {job.skills_required.slice(0, 3).map(sk => (
+                          <span key={sk} className="px-2 py-0.5 rounded text-[8px] font-bold bg-white/5 border border-white/5 text-slate-300">
+                            {sk}
+                          </span>
+                        ))}
+                        {job.skills_required.length > 3 && (
+                          <span className="px-2 py-0.5 rounded text-[8px] font-bold bg-white/5 border border-white/5 text-slate-500">
+                            +{job.skills_required.length - 3} more
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Bottom details & CTA */}
-                  <div className="border-t border-white/5 pt-4 flex items-center justify-between">
-                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-teal-400">
-                      ⚡ {job.matchPercentage}% AI COMPATIBILITY
+                  {/* Bottom footer for compatibility scoring and CTA buttons */}
+                  <div className="px-5 pb-5 pt-3 border-t border-white/5 flex items-center justify-between mt-auto">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-400 flex items-center space-x-1">
+                      <span>⚡</span>
+                      <span>{job.matchPercentage}% AI COMPATIBILITY</span>
                     </span>
 
                     <div className="flex space-x-2">
@@ -528,7 +660,7 @@ export default function LandingPage() {
                       
                       <Link
                         href="/register"
-                        className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-slate-950 font-black text-[10px] rounded-xl uppercase tracking-wider flex items-center space-x-1.5 transition-all"
+                        className="px-4 py-2 bg-purple-500 hover:bg-purple-600 hover:shadow-purple-500/20 text-slate-950 font-black text-[9px] rounded-xl uppercase tracking-wider flex items-center space-x-1.5 transition-all shadow-md"
                       >
                         <span>Apply</span>
                         <ArrowUpRight className="w-3 h-3" />

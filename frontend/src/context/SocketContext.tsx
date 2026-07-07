@@ -17,12 +17,14 @@ interface SocketContextProps {
   socket: Socket | null;
   toasts: Toast[];
   removeToast: (id: string) => void;
+  addToast: (title: string, message: string, type: 'info' | 'success' | 'warning' | 'alert') => void;
 }
 
 const SocketContext = createContext<SocketContextProps>({
   socket: null,
   toasts: [],
-  removeToast: () => {}
+  removeToast: () => {},
+  addToast: () => {}
 });
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
@@ -33,6 +35,37 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
+
+  const addToast = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'alert') => {
+    const newToast: Toast = {
+      id: Math.random().toString(),
+      title,
+      message,
+      type
+    };
+    setToasts((prev) => [...prev, newToast]);
+    setTimeout(() => {
+      removeToast(newToast.id);
+    }, 6000);
+  };
+
+  useEffect(() => {
+    const handleGlobalToast = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        const { title, message, type } = customEvent.detail;
+        addToast(title, message, type);
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('global-toast', handleGlobalToast);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('global-toast', handleGlobalToast);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!accessToken || !user) {
@@ -89,7 +122,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   }, [accessToken, user]);
 
   return (
-    <SocketContext.Provider value={{ socket, toasts, removeToast }}>
+    <SocketContext.Provider value={{ socket, toasts, removeToast, addToast }}>
       {children}
       
       {/* Toast Alert Portal View */}
@@ -135,3 +168,10 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useSocket = () => useContext(SocketContext);
+
+export const triggerGlobalToast = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'alert') => {
+  if (typeof window !== 'undefined') {
+    const event = new CustomEvent('global-toast', { detail: { title, message, type } });
+    window.dispatchEvent(event);
+  }
+};
