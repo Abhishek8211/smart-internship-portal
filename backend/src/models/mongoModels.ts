@@ -3,26 +3,30 @@ import mongoose, { Schema, Document } from 'mongoose';
 // User Schema (Base for Students, Recruiters, Admins in Mongo, synced if necessary)
 export interface IUser extends Document {
   email: string;
-  passwordHash: string;
+  passwordHash: string; // for new users
+  password?: string; // for legacy users
   role: 'student' | 'recruiter' | 'admin';
   name: string;
   isVerified: boolean;
   otp?: string;
   otpExpiry?: Date;
-  profilePic?: string;
+  profilePic?: string; // for new users
+  avatar?: string; // for legacy users
   refreshTokens?: string[];
   createdAt: Date;
 }
 
 const UserSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true },
-  passwordHash: { type: String, required: true },
+  passwordHash: { type: String }, // Made optional to support legacy users
+  password: { type: String }, // Legacy users
   role: { type: String, required: true, enum: ['student', 'recruiter', 'admin'] },
   name: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
   otp: { type: String },
   otpExpiry: { type: Date },
   profilePic: { type: String, default: '' },
+  avatar: { type: String },
   refreshTokens: [{ type: String }]
 }, { timestamps: true });
 
