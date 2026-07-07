@@ -1,4 +1,3 @@
-'use strict';
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -12,8 +11,7 @@ import {
 } from 'lucide-react';
 
 export default function RecruiterDashboard() {
-  const { user, logout, apiFetch } = useAuth();
-  const { addToast } = useSocket();
+  const { user, logout, apiFetch, loading: authLoading } = useAuth();
   const router = useRouter();
 
   // Navigation Panel
@@ -57,15 +55,19 @@ export default function RecruiterDashboard() {
   const [offeringLoading, setOfferingLoading] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.push('/login');
+      return;
+    }
+    if (user && user.role !== 'recruiter') {
+      router.push(`/dashboard/${user.role}`);
       return;
     }
     if (user) {
       fetchDashboardData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, loading]);
+  }, [user, authLoading]);
 
   const fetchDashboardData = async () => {
     try {

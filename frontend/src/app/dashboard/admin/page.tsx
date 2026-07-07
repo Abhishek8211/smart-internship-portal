@@ -1,4 +1,3 @@
-'use strict';
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -128,7 +127,7 @@ function StatusBadge({ active }: { active: boolean }) {
 // MAIN ADMIN DASHBOARD
 // ═══════════════════════════════════════════════
 export default function AdminDashboard() {
-  const { user, logout, apiFetch } = useAuth();
+  const { user, logout, apiFetch, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<'analytics' | 'companies' | 'users' | 'jobs'>('analytics');
@@ -185,15 +184,19 @@ export default function AdminDashboard() {
 
   // Auth guard
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.push('/login');
+      return;
+    }
+    if (user && user.role !== 'admin') {
+      router.push(`/dashboard/${user.role}`);
       return;
     }
     if (user) {
       fetchDashboardData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, loading]);
+  }, [user, authLoading]);
 
   // ─── Data fetching ───
   const fetchDashboardData = async () => {

@@ -6,7 +6,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-int
   .then(async () => {
     const db = mongoose.connection.db;
     const users = await db!.collection('users').find({}).toArray();
-    console.log(users.map(u => ({ email: u.email, keys: Object.keys(u) })));
+    console.log(users.map(u => ({ email: u.email, avatar: u.avatar })));
     mongoose.disconnect();
   })
   .catch(console.error);

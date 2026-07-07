@@ -63,9 +63,7 @@ router.post('/register', async (req, res) => {
       passwordHash,
       role,
       name,
-      isVerified: false,
-      otp,
-      otpExpiry
+      isVerified: true
     });
 
     // Profile creation
@@ -93,14 +91,19 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Trigger NodeMailer verification email in background
-    emailService.sendOtpEmail(email, otp).catch(console.error);
+    const { accessToken, refreshToken } = await generateAndPersistTokens(newUser);
 
     res.status(201).json({
-      message: 'Registration successful. Verification OTP sent to your email.',
-      userId: newUser._id,
-      email: newUser.email,
-      otp // Return direct for testing convenience
+      message: 'Registration successful.',
+      accessToken,
+      refreshToken,
+      user: {
+        id: newUser._id,
+        email: newUser.email,
+        role: newUser.role,
+        name: newUser.name,
+        profilePic: newUser.profilePic || ''
+      }
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -180,20 +183,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    if (!user.isVerified) {
-      // Re-send OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
-      await dbStore.users.update(user._id, { otp, otpExpiry });
-      // Trigger NodeMailer verification email in background
-      emailService.sendOtpEmail(email, otp).catch(console.error);
 
-      return res.status(403).json({
-        error: 'Account not verified. Verification OTP sent.',
-        verified: false,
-        otp
-      });
-    }
 
     const { accessToken, refreshToken } = await generateAndPersistTokens(user);
 

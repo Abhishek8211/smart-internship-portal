@@ -1,4 +1,3 @@
-'use strict';
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -115,13 +114,7 @@ const JobBannerImage = ({ src, alt, className }: { src: string; alt: string; cla
 };
 
 export default function StudentDashboard() {
-  const { user, logout, apiFetch, isDemoMode } = useAuth();
-  const { addToast } = useSocket();
-  const [applyConfirmJob, setApplyConfirmJob] = React.useState<any | null>(null);
-  const [applyingJobId, setApplyingJobId] = React.useState<string | null>(null);
-  const [appliedJobsLocally, setAppliedJobsLocally] = React.useState<string[]>([]);
-  const [localBookmarks, setLocalBookmarks] = React.useState<string[]>([]);
-  const [animatingStarId, setAnimatingStarId] = React.useState<string | null>(null);
+  const { user, logout, apiFetch, loading: authLoading } = useAuth();
   const router = useRouter();
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -198,15 +191,19 @@ export default function StudentDashboard() {
   const [activeInterviewApp, setActiveInterviewApp] = useState<any>(null);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.push('/login');
+      return;
+    }
+    if (user && user.role !== 'student') {
+      router.push(`/dashboard/${user.role}`);
       return;
     }
     if (user) {
       fetchDashboardData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, loading]);
+  }, [user, authLoading]);
 
   const fetchDashboardData = async () => {
     try {
