@@ -68,16 +68,9 @@ export default function RecruiterDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      // Fetch recruiter jobs and applicants from backend with local simulations on fail
-      const jobsData = await apiFetch('/internships').catch(() => [
-        { id: 'intern_stripe_fe', role: 'Frontend Engineering Intern', location: 'San Francisco, CA', mode: 'Hybrid', stipend: '$45/hour', duration: '12 Weeks', skills_required: ['React', 'TypeScript', 'Tailwind CSS', 'Redux Toolkit'], applicants_count: 14 },
-        { id: 'intern_vercel_fs', role: 'Full-Stack Developer Intern', location: 'Remote', mode: 'Remote', stipend: '$50/hour', duration: '16 Weeks', skills_required: ['React', 'Next.js', 'TypeScript', 'Node.js', 'PostgreSQL'], applicants_count: 28 }
-      ]);
+      const jobsData = await apiFetch('/internships').catch(() => []);
 
-      const applicantsData = await apiFetch('/applications').catch(() => [
-        { _id: 'app_1', internshipId: 'intern_stripe_fe', internship: { role: 'Frontend Engineering Intern' }, studentName: 'Alex Rivera', studentEmail: 'student@example.com', studentProfilePic: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150', matchPercentage: 92, matchExplanation: 'You match all skills and your CGPA exceeds the criteria.', status: 'Shortlisted', studentProfile: { skills: ['React', 'TypeScript', 'Tailwind', 'Node.js', 'Express', 'MongoDB'], cgpa: 3.92, education: [{ institution: 'Stanford University' }], projects: [{ title: 'E-Commerce Dashboard' }] } },
-        { _id: 'app_2', internshipId: 'intern_vercel_fs', internship: { role: 'Full-Stack Developer Intern' }, studentName: 'Jane Smith', studentEmail: 'jane.smith@example.com', studentProfilePic: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150', matchPercentage: 88, matchExplanation: 'Matches 4/5 skills. Excellent project quality.', status: 'Applied', studentProfile: { skills: ['React', 'Next.js', 'TypeScript', 'Node.js', 'SQL'], cgpa: 3.85, education: [{ institution: 'MIT' }], projects: [{ title: 'Customer Churn Predictor' }] } }
-      ]);
+      const applicantsData = await apiFetch('/applications').catch(() => []);
 
       // Filter listings belonging to this recruiter's company if in memory
       setListings(jobsData);

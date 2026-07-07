@@ -20,7 +20,6 @@ interface AuthContextType {
   register: (data: any) => Promise<any>;
   verifyOtp: (email: string, otp: string) => Promise<any>;
   logout: () => void;
-  mockLogin: (role: 'student' | 'recruiter' | 'admin') => void;
   apiFetch: (endpoint: string, options?: RequestInit) => Promise<any>;
 }
 
@@ -78,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const forceRelogin = () => {
           if (typeof window !== 'undefined' && !(window as any)._isRedirectingToLogin) {
             (window as any)._isRedirectingToLogin = true;
-            console.warn('Session expired or mock token detected. Redirecting to login...');
+            console.warn('Session expired. Redirecting to login...');
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');
@@ -91,7 +90,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return new Promise(() => {}); // Halt execution to prevent Next.js error overlay
         };
 
-        if (refresh && !refresh.startsWith('mock_')) {
+        if (refresh) {
           try {
             const refreshRes = await fetch(`${API_URL}/auth/refresh-token`, {
               method: 'POST',
@@ -129,7 +128,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return await response.json();
     } catch (err: any) {
-      console.warn(`API Connection to ${endpoint} failed. Falling back to local data simulations.`);
       throw err;
     }
   };
@@ -148,31 +146,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(data.user);
       return data;
     } catch (err) {
-      // Fallback local matching
-      if (email === 'student@example.com' && password === 'Password@123') {
-        const localUser: User = { id: 'usr_student_1', email, role: 'student', name: 'Alex Rivera', profilePic: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150' };
-        localStorage.setItem('accessToken', 'mock_token_student');
-        localStorage.setItem('user', JSON.stringify(localUser));
-        setAccessToken('mock_token_student');
-        setUser(localUser);
-        return { user: localUser };
-      } 
-      if (email === 'recruiter@stripe.com' && password === 'Password@123') {
-        const localUser: User = { id: 'usr_recruiter_1', email, role: 'recruiter', name: 'Sarah Chen', profilePic: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' };
-        localStorage.setItem('accessToken', 'mock_token_recruiter');
-        localStorage.setItem('user', JSON.stringify(localUser));
-        setAccessToken('mock_token_recruiter');
-        setUser(localUser);
-        return { user: localUser };
-      }
-      if (email === 'admin@portal.com' && password === 'Password@123') {
-        const localUser: User = { id: 'usr_admin_1', email, role: 'admin', name: 'Chief Administrator', profilePic: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' };
-        localStorage.setItem('accessToken', 'mock_token_admin');
-        localStorage.setItem('user', JSON.stringify(localUser));
-        setAccessToken('mock_token_admin');
-        setUser(localUser);
-        return { user: localUser };
-      }
       throw err;
     }
   };
@@ -184,12 +157,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         body: JSON.stringify(formData)
       });
     } catch (err) {
-      // Offline fallback simulation
-      return {
-        message: 'Registration simulated offline.',
-        email: formData.email,
-        otp: '123456'
-      };
+      throw err;
     }
   };
 
@@ -207,48 +175,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(data.user);
       return data;
     } catch (err) {
-      if (otp === '123456' || otp === 'default') {
-        const role = email.includes('recruiter') ? 'recruiter' : email.includes('admin') ? 'admin' : 'student';
-        const localUser: User = {
-          id: 'usr_' + Math.random().toString(36).substr(2, 9),
-          email,
-          role,
-          name: email.split('@')[0]
-        };
-        localStorage.setItem('accessToken', 'mock_token');
-        localStorage.setItem('user', JSON.stringify(localUser));
-        setAccessToken('mock_token');
-        setUser(localUser);
-        return { user: localUser };
-      }
       throw err;
     }
   };
 
-  const mockLogin = (role: 'student' | 'recruiter' | 'admin') => {
-    const mockUser: User = {
-      id: role === 'student' ? 'usr_student_1' : role === 'recruiter' ? 'usr_recruiter_1' : 'usr_admin_1',
-      email: `${role}@example.com`,
-      role,
-      name: role === 'student' ? 'Alex Rivera' : role === 'recruiter' ? 'Sarah Chen' : 'Portal Administrator',
-      profilePic: role === 'student' 
-        ? 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150'
-        : role === 'recruiter'
-        ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150'
-        : 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150'
-    };
-
-    localStorage.setItem('accessToken', `mock_token_${role}`);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    setAccessToken(`mock_token_${role}`);
-    setUser(mockUser);
-
-    router.push(`/dashboard/${role}`);
-  };
-
   const logout = () => {
     const refresh = localStorage.getItem('refreshToken');
-    if (refresh && !refresh.startsWith('mock_')) {
+    if (refresh) {
       apiFetch('/auth/logout', {
         method: 'POST',
         body: JSON.stringify({ token: refresh })
@@ -263,7 +196,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, loading, login, register, verifyOtp, logout, mockLogin, apiFetch }}>
+    <AuthContext.Provider value={{ user, accessToken, loading, login, register, verifyOtp, logout, apiFetch }}>
       {children}
     </AuthContext.Provider>
   );

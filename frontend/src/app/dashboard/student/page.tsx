@@ -94,38 +94,15 @@ export default function StudentDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      // Try calling backend, fallback to local simulations on catch
-      const profileData = await apiFetch('/student/profile').catch(() => ({
-        skills: [],
-        cgpa: 0,
-        education: [],
-        projects: [],
-        certifications: [],
-        links: { portfolio: '', github: '', linkedin: '' },
-        resumeUrl: '',
-        atsScore: 0,
-        atsSuggestions: []
-      }));
+      const profileData = await apiFetch('/student/profile').catch(() => ({}));
 
-      const jobsData = await apiFetch(`/internships?search=${searchQuery}&mode=${modeFilter}&location=${locFilter}`).catch(() => [
-        { id: 'intern_stripe_fe', role: 'Frontend Engineering Intern', company_name: 'Stripe', company_logo: 'https://images.unsplash.com/photo-1618401471353-b98aedd07871?w=100', location: 'San Francisco, CA', mode: 'Hybrid', stipend: '$45/hour', duration: '12 Weeks', skills_required: ['React', 'TypeScript', 'Tailwind CSS', 'Redux Toolkit'], posted_date: '3 days ago', matchPercentage: 92, matchExplanation: 'You match all skills and your CGPA exceeds the criteria.' },
-        { id: 'intern_vercel_fs', role: 'Full-Stack Developer Intern', company_name: 'Vercel', company_logo: 'https://images.unsplash.com/photo-1618401471353-b98aedd07871?w=100&q=80', location: 'Remote', mode: 'Remote', stipend: '$50/hour', duration: '16 Weeks', skills_required: ['React', 'Next.js', 'TypeScript', 'Node.js', 'PostgreSQL'], posted_date: '5 days ago', matchPercentage: 88, matchExplanation: 'Matches 4/5 skills. Excellent portfolio projects.' },
-        { id: 'intern_google_ai', role: 'AI & Research Engineering Intern', company_name: 'Google', company_logo: 'https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=100', location: 'Mountain View, CA', mode: 'Office', stipend: '$55/hour', duration: '12 Weeks', skills_required: ['Python', 'PyTorch', 'TensorFlow', 'Docker'], posted_date: '1 day ago', matchPercentage: 45, matchExplanation: 'Skill gap in PyTorch/TensorFlow. Python matches.' }
-      ]);
+      const jobsData = await apiFetch(`/internships?search=${searchQuery}&mode=${modeFilter}&location=${locFilter}`).catch(() => []);
 
-      const applicationsData = await apiFetch('/applications').catch(() => [
-        { _id: 'app_1', internship: { role: 'Frontend Engineering Intern', company_name: 'Stripe' }, status: 'Shortlisted', matchPercentage: 92, timeline: [{ status: 'Applied', date: new Date() }] },
-        { _id: 'app_2', internship: { role: 'Full-Stack Developer Intern', company_name: 'Vercel', description: 'Work on React 19 Next.js features.' }, status: 'Interview Scheduled', matchPercentage: 88, timeline: [{ status: 'Applied', date: new Date() }, { status: 'Interview Scheduled', date: new Date() }], interviewDetails: { dateTime: 'Tomorrow, 10:00 AM', link: 'https://zoom.us/j/987654321', notes: 'Panel round.', aiQuestions: { technical: ['What are server components vs client components?', 'How would you handle heavy backend Express routes?'], hr: ['Why do you want to join Vercel?', 'Describe a time you had a technical disagreement.'], coding: ['Implement a custom throttle in TypeScript.', 'Merge overlapping intervals.'], behavioral: ['Explain a complex project completed under a tight deadline.', 'How do you coordinate key bug fixes?'] } } }
-      ]);
+      const applicationsData = await apiFetch('/applications').catch(() => []);
 
-      const notificationsData = await apiFetch('/notifications').catch(() => [
-        { _id: 'n_1', title: 'Application Shortlisted', message: 'Your application for Stripe is shortlisted.', type: 'success', createdAt: new Date() },
-        { _id: 'n_2', title: 'Interview Scheduled', message: 'Vercel interview scheduled for tomorrow.', type: 'info', createdAt: new Date() }
-      ]);
+      const notificationsData = await apiFetch('/notifications').catch(() => []);
 
-      const chatbotHistory = await apiFetch('/ai/chat').catch(() => ({
-        messages: [{ sender: 'bot', text: 'Hello Alex! I am your AI Career Assistant. Ask me about resume tuning, projects, or roadmap guides.', timestamp: new Date() }]
-      }));
+      const chatbotHistory = await apiFetch('/ai/chat').catch(() => ({ messages: [] }));
 
       setProfile(profileData);
       setProfileSkills(profileData.skills?.join(', ') || '');
