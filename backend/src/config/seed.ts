@@ -1,5 +1,11 @@
-import { connectMongoDB, connectPostgreSQL, prisma } from './db';
-import { User, StudentProfile, Application, Notification, Chat } from '../models/mongoModels';
+import { connectMongoDB, connectPostgreSQL, prisma } from "./db";
+import {
+  User,
+  StudentProfile,
+  Application,
+  Notification,
+  Chat,
+} from "../models/mongoModels";
 import {
   sampleUsers,
   sampleCompanies,
@@ -8,11 +14,11 @@ import {
   sampleInternships,
   sampleApplications,
   sampleNotifications,
-  sampleChats
-} from '../models/seedData';
+  sampleChats,
+} from "../models/seedData";
 
 const seedDatabases = async () => {
-  console.log('🌱 Starting database seeding script...');
+  console.log("🌱 Starting database seeding script...");
 
   // 1. Establish connections
   await connectMongoDB();
@@ -20,11 +26,13 @@ const seedDatabases = async () => {
 
   // 2. Seed MongoDB
   try {
-    console.log('🔄 Seeding MongoDB collections...');
-    
+    console.log("🔄 Seeding MongoDB collections...");
+
     await User.deleteMany({});
     await StudentProfile.deleteMany({});
-    await Application.collection.dropIndex('internship_1_applicant_1').catch(() => undefined);
+    await Application.collection
+      .dropIndex("internship_1_applicant_1")
+      .catch(() => undefined);
     await Application.deleteMany({});
     await Notification.deleteMany({});
     await Chat.deleteMany({});
@@ -39,7 +47,7 @@ const seedDatabases = async () => {
       const u = users.find((user) => user._id === prof.user);
       return {
         ...prof,
-        user: u?._id || prof.user
+        user: u?._id || prof.user,
       };
     });
     const profiles = await StudentProfile.insertMany(studentProfiles);
@@ -56,14 +64,13 @@ const seedDatabases = async () => {
     // Insert chats
     const chats = await Chat.insertMany(sampleChats);
     console.log(`✅ Seeded ${chats.length} Chats into MongoDB.`);
-
   } catch (err: any) {
-    console.error('❌ MongoDB seeding failed:', err.message);
+    console.error("❌ MongoDB seeding failed:", err.message);
   }
 
   // 3. Seed PostgreSQL
   try {
-    console.log('🔄 Seeding PostgreSQL tables...');
+    console.log("🔄 Seeding PostgreSQL tables...");
 
     // Clear tables
     await prisma.internship.deleteMany({});
@@ -80,11 +87,13 @@ const seedDatabases = async () => {
           description: c.description,
           website: c.website,
           location: c.location,
-          is_verified: c.is_verified
-        }
+          is_verified: c.is_verified,
+        },
       });
     }
-    console.log(`✅ Seeded ${sampleCompanies.length} Companies into PostgreSQL.`);
+    console.log(
+      `✅ Seeded ${sampleCompanies.length} Companies into PostgreSQL.`,
+    );
 
     // Insert recruiters
     for (const r of sampleRecruiters) {
@@ -94,11 +103,13 @@ const seedDatabases = async () => {
           company_id: r.company_id,
           phone: r.phone,
           title: r.title,
-          is_verified: r.is_verified
-        }
+          is_verified: r.is_verified,
+        },
       });
     }
-    console.log(`✅ Seeded ${sampleRecruiters.length} Recruiters into PostgreSQL.`);
+    console.log(
+      `✅ Seeded ${sampleRecruiters.length} Recruiters into PostgreSQL.`,
+    );
 
     // Insert internships
     for (const i of sampleInternships) {
@@ -113,22 +124,23 @@ const seedDatabases = async () => {
           stipend: i.stipend,
           duration: i.duration,
           skills_required: i.skills_required,
-          status: i.status
-        }
+          status: i.status,
+        },
       });
     }
-    console.log(`✅ Seeded ${sampleInternships.length} Internships into PostgreSQL.`);
-    console.log('✅ PostgreSQL seeding complete.');
-
+    console.log(
+      `✅ Seeded ${sampleInternships.length} Internships into PostgreSQL.`,
+    );
+    console.log("✅ PostgreSQL seeding complete.");
   } catch (err: any) {
-    console.error('❌ PostgreSQL seeding failed:', err.message);
+    console.error("❌ PostgreSQL seeding failed:", err.message);
   }
 
-  console.log('🏁 Database seeding process finished.');
+  console.log("🏁 Database seeding process finished.");
   process.exit(0);
 };
 
 seedDatabases().catch((err) => {
-  console.error('❌ Seeding process error:', err);
+  console.error("❌ Seeding process error:", err);
   process.exit(1);
 });

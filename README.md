@@ -9,6 +9,7 @@ This platform features a professional monorepo architecture, responsive glassmor
 ## Key Features
 
 ### 🌟 For Students
+
 - **AI Resume Parser & Profile Sync**: Extract skills, education, projects, and certifications automatically using Gemini 1.5.
 - **ATS Resume Grader**: Evaluate keyword density, project descriptions, and links with tuning suggestions.
 - **AI Recommendation Engine**: View compatibility scores (e.g., 95% Match) and detailed match explanations.
@@ -18,6 +19,7 @@ This platform features a professional monorepo architecture, responsive glassmor
 - **GitHub & LinkedIn Sync**: Fast-track portfolio setup via simulated profiles sync.
 
 ### 💼 For Recruiters
+
 - **Post & Audit Internship Listings**: Edit location modes (Remote/Hybrid/Office), stipends, and requirements with full CRUD.
 - **AI Candidate Ranking**: Retrieve applications sorted by matching score, shortening vetting time.
 - **Interview Scheduler**: Book Zoom interviews, schedule dates, and automatically generate practice sheets for candidates.
@@ -25,6 +27,7 @@ This platform features a professional monorepo architecture, responsive glassmor
 - **Company Profiles**: Save corporate branding details, logo, description, and website headquarters.
 
 ### 🛡️ For Admins
+
 - **Analytics Dashboard**: Access global statistics (total profiles, verified companies, top in-demand skills).
 - **Audit Logs**: Trace system activities (new profiles, hires, postings).
 - **Governance Controls**: Verify recruitment companies, audit jobs, and moderate user logins.
@@ -75,6 +78,7 @@ smart-internship-portal/
 ## Getting Started
 
 ### Prerequisites
+
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - [Docker & Docker Compose](https://www.docker.com/)
 
@@ -82,11 +86,12 @@ smart-internship-portal/
 
 1. **Bootstrap Monorepo Dependencies**
    Install packages for the frontend and backend using the legacy-peer-deps flag:
+
    ```bash
    # Backend
    cd backend
    npm install
-   
+
    # Frontend
    cd ../frontend
    npm install --legacy-peer-deps
@@ -112,6 +117,7 @@ smart-internship-portal/
 
 3. **Prisma Schema Build**
    Sync PostgreSQL structures and build the client types:
+
    ```bash
    cd backend
    npx prisma generate
@@ -120,13 +126,15 @@ smart-internship-portal/
    ```
 
 4. **Launch Local Services**
+
    ```bash
    # Start backend (from backend folder)
    npm run dev
-   
+
    # Start frontend (from frontend folder)
    npm run dev
    ```
+
    - **Frontend UI Client**: http://localhost:3000
    - **REST API Server**: http://localhost:5000
    - **API Documentation (Swagger UI)**: http://localhost:5000/api-docs
@@ -136,10 +144,13 @@ smart-internship-portal/
 ## 🐳 Docker Compose Deployment
 
 To spin up the complete environment including PostgreSQL, MongoDB, the API backend server, and the Next.js client under a unified compose network, simply run:
+
 ```bash
 docker compose up --build
 ```
+
 This maps:
+
 - Next.js Client on http://localhost:3000
 - REST API Server on http://localhost:5000
 - PostgreSQL on port `5432`
@@ -150,6 +161,7 @@ This maps:
 ## 🧪 Running Unit Tests
 
 We have implemented an automated test suite verifying the compatibility logic of our match scoring model, ATS analyzer suggestion calculations, and skill gap roadmaps:
+
 ```bash
 cd backend
 npm run test
@@ -161,9 +173,9 @@ npm run test
 
 To preview roles instantly, log in using these credentials:
 
-| Role | Email Address | Password |
-| :--- | :--- | :--- |
-| **Student** | `student@example.com` | `Password@123` |
-| **Recruiter** | `recruiter@stripe.com` | `Password@123` |
-| **Admin** | `admin@portal.com` | `Password@123` |
-| **Verification OTP** | *Any email registration* | `123456` |
+| Role                 | Email Address            | Password       |
+| :------------------- | :----------------------- | :------------- |
+| **Student**          | `student@example.com`    | `Password@123` |
+| **Recruiter**        | `recruiter@stripe.com`   | `Password@123` |
+| **Admin**            | `admin@portal.com`       | `Password@123` |
+| **Verification OTP** | _Any email registration_ | `123456`       |
